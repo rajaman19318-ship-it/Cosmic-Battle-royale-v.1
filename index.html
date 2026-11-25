@@ -1,0 +1,1208 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@700;900&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<style>
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{width:100vw;height:100vh;height:100dvh;overflow:hidden}
+body{background:#000;width:100vw;height:100vh;height:100dvh;overflow:hidden;font-family:'Orbitron',sans-serif}
+.game-screen{width:100vw;height:100vh;height:100dvh;position:fixed;left:0;top:0;background:#000;overflow:hidden;z-index:1}
+#screen1{position:absolute;inset:0;background:radial-gradient(circle at center,#001a2e 0%,#000 70%);display:flex;justify-content:center;align-items:center;z-index:10;cursor:pointer}
+.cosmic-big{font-size:52px;font-weight:900;letter-spacing:12px;white-space:nowrap;background:none;color:#00aaff;-webkit-text-fill-color:#00aaff;filter:drop-shadow(0 0 12px #00aaff);animation:cosmicGrow 6s ease-out forwards}
+@keyframes flash{50%{opacity:.6;transform:scale(1.05)}}
+@keyframes cosmicGrow{0%{transform:scale(0.2);opacity:0}40%{transform:scale(0.6);opacity:0.7}100%{transform:scale(1);opacity:1}}
+@keyframes flash{50%{opacity:.6;transform:scale(1.05)}}
+#screen2{position:absolute;inset:0;display:none;background-image:url('loading.jpg/loading.jpg');background-size:cover;background-position:center}
+#screen3{position:absolute;inset:0;display:none;background-image:url('taptonext.jpg/taptonext.jpg');background-size:cover;background-position:center}
+#screen2{z-index:20}#screen3{z-index:30}
+#screen4{position:absolute;inset:0;display:none;z-index:40;overflow:hidden;background:#000}
+#screen2::after,#screen3::after{content:'';position:absolute;inset:0;background:rgba(0,0,0,.35);pointer-events:none;z-index:1}
+.lobby{position:absolute;inset:0;background-image:url('space.jpg/space.jpg');background-size:cover;background-position:center;background-color:#000;overflow:hidden}
+.content2,.content3{position:relative;z-index:2;width:100%;height:100%}
+.char-platform{display:none!important}
+.char-platform::before,.char-platform::after{display:none!important}
+@keyframes holeRotate{0%{transform:rotate(0deg)}100%{transform:rotate(360deg)}}
+.cosmic-corner,.cosmic-top{position:absolute;top:18px;left:20px;font-size:22px;font-weight:900;letter-spacing:6px;background:linear-gradient(180deg,#fff,#FFD700 50%,#FF6A00);-webkit-background-clip:text;-webkit-text-fill-color:transparent;filter:drop-shadow(0 0 10px #FFA500)}
+.cosmic-top{background:linear-gradient(180deg,#fff,#7fd4ff 40%,#00aaff 70%,#004d7a);-webkit-background-clip:text;filter:drop-shadow(0 0 10px #7fd4ff)}
+.center-box{position:absolute;top:52%;left:50%;transform:translate(-50%,-50%);text-align:center;width:100%}
+.new-era{font-size:38px;font-weight:900;letter-spacing:8px;color:#fff;text-shadow:0 0 10px #FFA500,0 0 25px #FF6A00,0 0 45px red}
+.loading-area{position:absolute;bottom:55px;left:50%;transform:translateX(-50%);width:72%;text-align:center}
+.loading-box{width:100%;height:18px;background:rgba(0,0,0,.7);border:1.5px solid #FFD700;border-radius:20px;overflow:hidden}
+#bar{height:100%;width:0%;background:linear-gradient(90deg,#8B0000,#FF0000,#FF6A00,#FFD700,#FFFF00,#fff);border-radius:20px}
+#percent{margin-top:10px;font-size:15px;color:#FFD700;letter-spacing:2px;font-weight:700}
+.fire{position:absolute;bottom:74px;left:50%;transform:translateX(-50%);width:72%;height:55px;pointer-events:none}
+.flame{position:absolute;bottom:0;border-radius:50%;opacity:0;animation:flameUp .9s ease-out infinite}
+@keyframes flameUp{0%{transform:translateY(15px) scale(.4);opacity:1}100%{transform:translateY(-50px) scale(.2);opacity:0}}
+.tap-begin{position:absolute;bottom:60px;left:50%;transform:translateX(-50%);font-size:24px;font-weight:900;letter-spacing:3px;color:#FFD700;border:2px solid #FFD700;padding:14px 32px;border-radius:50px;background:rgba(0,0,0,.5);white-space:nowrap;animation:blink 2.2s infinite}
+@keyframes blink{50%{opacity:.35}}
+.lobby-top{position:absolute;top:0;left:0;width:100%;height:55px;display:flex;justify-content:space-between;align-items:center;padding:0 15px;background:linear-gradient(180deg,rgba(0,0,0,.6),transparent);z-index:10}
+.lobby-cosmic{font-size:20px;font-weight:900;letter-spacing:5px;color:#fff;text-shadow:0 0 12px #00aaff}
+.side-box{position:absolute;width:58px;height:110px;border:1.5px solid rgba(255,255,255,.8);border-radius:10px;overflow:hidden;display:flex;align-items:flex-end;justify-content:center;cursor:pointer;box-shadow:0 4px 12px rgba(0,0,0,.5);z-index:10;background:#000;visibility:visible!important;opacity:1!important}
+.side-box img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
+.side-label{position:relative;z-index:2;width:100%;text-align:center;font-size:8px;font-weight:900;color:#fff;background:rgba(0,0,0,.65);padding:4px 1px;line-height:1.4}
+.side-label .ico{font-size:16px;display:block;line-height:1}
+.side-label.vault-shiny{background:#000!important;color:#fff!important;-webkit-text-fill-color:#fff;filter:none;font-size:10px;letter-spacing:1px}
+.side-left{left:12px;top:118px;width:92px;height:32px;border:1.5px solid #00e5ff;border-radius:20px;background:rgba(0,0,0,.7);display:flex;align-items:center;justify-content:center;box-shadow:0 0 10px #00e5ff}
+.side-classic{left:12px;top:118px;width:92px;height:32px;border:1.5px solid #FFD700;border-radius:20px;background:rgba(0,0,0,.7);display:flex;align-items:center;justify-content:center;box-shadow:0 0 10px #FFD700}
+.side-left .side-label,.side-classic .side-label{font-size:9px;background:transparent;padding:0;letter-spacing:1px}
+.side-right{left:auto;right:8px;top:6px;width:110px;height:58px;border-color:#00e5ff;border-radius:10px;z-index:20}
+.side-right .side-label{font-size:9px}
+.side-luck{right:12px;top:72px;width:92px;height:32px;border:1.5px solid #FF00FF;border-radius:20px;background:rgba(0,0,0,.7);display:flex;align-items:center;justify-content:center;box-shadow:0 0 10px #FF00FF}
+.side-luck .side-label{font-size:9px;background:transparent;padding:0;letter-spacing:1px;color:#FFAAFF}
+.side-store{right:12px;top:108px;width:92px;height:32px;border:1.5px solid #00FF00;border-radius:20px;background:rgba(0,0,0,.7);display:flex;align-items:center;justify-content:center;box-shadow:0 0 10px #00FF00}
+.side-store .side-label{font-size:9px;background:transparent;padding:0;letter-spacing:1px;color:#AAFFAA}
+.side-vault{right:12px;top:144px;width:92px;height:32px;border:1.5px solid #fff;border-radius:20px;background:rgba(0,0,0,.7);display:flex;align-items:center;justify-content:center;box-shadow:0 0 10px #fff}
+.side-vault .side-label{font-size:10px;background:#000;padding:0;letter-spacing:1px;color:#fff}
+#currencyBar{position:absolute;right:124px;top:6px;width:110px;height:58px;background:transparent;border:none;box-shadow:none;display:flex;flex-direction:column;align-items:flex-end;justify-content:center;gap:4px;z-index:20}
+#currencyBar .cur-row{font-size:14px;font-weight:900;color:#fff;white-space:nowrap;text-shadow:0 0 6px #000}
+#currencyBar .cur-row span{color:#fff}
+#currencyBar .cur-row.dia span{color:#fff}
+.bundle-badge{position:absolute;top:-6px;left:50%;transform:translateX(-50%);background:linear-gradient(180deg,#FFD700,#FF6A00);color:#000;font-size:9px;font-weight:900;padding:3px 10px;border-radius:10px;white-space:nowrap;z-index:5;display:none;box-shadow:0 0 12px #FFD700}
+.char-wrap{position:absolute;top:44%;left:50%;transform:translate(-50%,-50%);width:340px;height:420px;z-index:4;cursor:grab;touch-action:none}
+.char-wrap:active{cursor:grabbing}
+#lobby3D{width:100%;height:100%;display:block;touch-action:none;background:transparent}
+#emoteWheel{position:absolute;top:52%;left:50%;transform:translate(-50%,-50%);width:200px;height:200px;border-radius:50%;background:rgba(255,255,255,.12);border:2px solid rgba(255,255,255,.5);display:none;z-index:20}
+#emoteWheel.show{display:block}
+.emote-btn{position:absolute;width:42px;height:42px;border-radius:50%;background:rgba(0,0,0,.75);border:2px dashed #555;color:#888;font-size:16px;display:flex;align-items:center;justify-content:center;cursor:pointer;transform:translate(-50%,-50%)}
+.emote-btn.unlocked{border:2px solid #FFD700;color:#fff;box-shadow:0 0 10px rgba(255,215,0,.6);background:rgba(0,0,0,.85)}
+.emote-btn.active{border-color:#00FF00;background:#003300;box-shadow:0 0 14px #00FF00}
+.emote-center{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);width:52px;height:52px;border-radius:50%;background:rgba(0,0,0,.8);border:2px solid #fff;color:#fff;font-size:10px;font-weight:900;display:flex;align-items:center;justify-content:center;text-align:center;cursor:pointer}
+.emote-name{position:absolute;top:58%;left:50%;transform:translateX(-50%);background:rgba(0,0,0,.7);color:#FFD700;font-size:10px;font-weight:900;padding:3px 10px;border-radius:10px;white-space:nowrap;z-index:21;display:none!important}
+.lobby-bottom{position:absolute;bottom:0;left:0;width:100%;height:70px;display:flex;align-items:center;gap:10px;padding:0 12px 12px;background:linear-gradient(0deg,rgba(0,0,0,.45),transparent);z-index:10}
+.start-btn{min-width:95px;height:48px;background:linear-gradient(180deg,#FFD700,#FF6A00);border:none;border-radius:10px;font-family:'Orbitron';font-size:18px;font-weight:900;color:#000;box-shadow:0 0 20px #FFA500;z-index:10;visibility:visible!important;opacity:1!important;display:block!important}
+.big-box{width:105px;height:48px;border:1.5px solid #FFD700;border-radius:10px;background:rgba(0,0,0,.6);display:flex!important;flex-direction:column;align-items:center;justify-content:center;color:#FFD700;font-size:10px;font-weight:900;cursor:pointer;z-index:10;line-height:1.3;visibility:visible!important;opacity:1!important}
+.big-box .ico{font-size:18px;display:block}
+#timerBox{position:absolute;top:2%;left:50%;transform:translateX(-50%);z-index:999;display:none;text-align:center;background:linear-gradient(180deg,#FFD700,#FFA500,#FF6A00);border:1.5px solid #fff;border-radius:8px;padding:3px 8px 3px 6px;box-shadow:0 0 10px #FFD700,0 3px 8px rgba(0,0,0,.6);min-width:68px}
+#timerNum{font-size:20px;font-weight:900;color:#000;line-height:1}
+#timerText{font-size:7px;font-weight:900;color:#000;letter-spacing:1px;margin-top:1px;white-space:nowrap}
+#cutBtn{position:absolute;top:-6px;right:-6px;width:15px;height:15px;background:red;color:#fff;border:1.5px solid #fff;border-radius:50%;font-weight:900;cursor:pointer;font-size:8px;display:flex;align-items:center;justify-content:center;z-index:2}
+#screen5{position:fixed;inset:0;display:none;z-index:500;background:#000}
+#game{position:absolute;inset:0;width:100%;height:100%;background:#87ceeb;overflow:hidden;touch-action:none}
+#game canvas{display:block;width:100%;height:100%}
+#joy{position:absolute;bottom:20px;left:20px;width:130px;height:130px;border:2px solid rgba(255,255,255,.9);border-radius:50%;background:rgba(0,0,0,.35);z-index:10;touch-action:none}
+#stick{position:absolute;left:40px;top:40px;width:50px;height:50px;background:#fff;border-radius:50%;box-shadow:0 0 12px #00e5ff}
+#joyRun{position:absolute;bottom:165px;left:20px;width:110px;height:110px;border:2px solid rgba(255,215,0,.95);border-radius:50%;background:rgba(0,0,0,.35);z-index:10;touch-action:none}
+#stickRun{position:absolute;left:32px;top:32px;width:46px;height:46px;background:#FFD700;border-radius:50%;box-shadow:0 0 12px #FF6A00}
+.joy-label{position:absolute;left:50%;bottom:-18px;transform:translateX(-50%);font-size:8px;font-weight:900;color:#fff;white-space:nowrap;text-shadow:0 0 4px #000;letter-spacing:1px}
+#joyRun .joy-label{color:#FFD700}
+#fireBtn{position:absolute;bottom:25px;right:22px;width:92px;height:92px;background:radial-gradient(circle,#FF3333,#8B0000);border:3px solid #fff;border-radius:50%;color:#fff;font-weight:900;font-size:15px;display:flex;align-items:center;justify-content:center;z-index:10}
+#reloadBtn{position:absolute;bottom:130px;right:130px;width:58px;height:58px;background:linear-gradient(180deg,#00e5ff,#0066FF);border:3px solid #fff;border-radius:50%;color:#fff;font-weight:900;font-size:11px;display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:10;text-align:center;line-height:1.1;box-shadow:0 0 14px #00e5ff}
+#reloadBtn.need-reload{background:linear-gradient(180deg,#FFD700,#FF6A00);color:#000;animation:blink 0.7s infinite;box-shadow:0 0 18px #FFD700}
+#reloadBtn.reloading{background:#333;color:#fff;animation:none;box-shadow:none}
+#ammoHud{position:absolute;bottom:205px;right:18px;background:rgba(0,0,0,.65);border:1.5px solid #FFD700;border-radius:10px;padding:6px 10px;color:#fff;font-size:12px;font-weight:900;z-index:10;text-align:center;line-height:1.4;min-width:72px}
+#ammoHud b{color:#FFD700;font-size:15px}
+#ammoHud span{color:#00FF00;font-size:10px}
+#gunBtn{position:absolute;bottom:125px;right:30px;width:64px;height:64px;background:linear-gradient(180deg,#FFD700,#FF6A00);border:3px solid #fff;border-radius:50%;color:#000;font-weight:900;font-size:22px;display:flex;align-items:center;justify-content:center;z-index:10;text-align:center;line-height:1.2}
+#crosshair{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);width:44px;height:44px;z-index:15;pointer-events:none;opacity:.95}
+#crosshair::before,#crosshair::after{content:'';position:absolute;background:#fff;box-shadow:0 0 4px #000}
+#crosshair::before{left:50%;top:0;width:2px;height:100%;transform:translateX(-50%)}
+#crosshair::after{top:50%;left:0;height:2px;width:100%;transform:translateY(-50%)}
+#crosshair i{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);width:8px;height:8px;border:2px solid #FF0000;border-radius:50%;display:block}
+#crosshair.locked i{border-color:#00FF00;box-shadow:0 0 10px #00FF00}
+#camHint{display:none}
+#hpBox{position:absolute;top:10px;left:10px;color:#fff;font-size:12px;z-index:10;text-shadow:0 0 4px #000}
+#hpBar{width:150px;height:14px;background:#333;border:2px solid #fff;border-radius:10px;overflow:hidden;margin-top:3px}
+#hpFill{height:100%;width:100%;background:#0f0}
+#winnerBox,#deadBox{position:absolute;inset:0;display:none;z-index:100;background:rgba(0,0,0,.75);text-align:center}
+#winnerText{position:absolute;top:30%;left:50%;transform:translate(-50%,-50%);font-size:55px;font-weight:900;color:#FFD700;-webkit-text-stroke:2px #fff;white-space:nowrap}
+#winnerSub{position:absolute;top:48%;left:50%;transform:translate(-50%,-50%);font-size:20px;color:#fff}
+#giftBtn{position:absolute;top:62%;left:50%;transform:translate(-50%,-50%);display:none;padding:16px 30px;background:linear-gradient(180deg,#FFD700,#FF6A00);border:none;border-radius:15px;font-family:'Orbitron';font-size:20px;font-weight:900}
+#deadText{position:absolute;top:42%;left:50%;transform:translate(-50%,-50%);font-size:28px;font-weight:900;color:#FF3333;-webkit-text-stroke:1px #fff;white-space:nowrap}
+#deadReturnBtn{position:absolute;top:56%;left:50%;transform:translate(-50%,-50%);display:none;padding:8px 16px;background:linear-gradient(180deg,#FFD700,#FF6A00);border:none;border-radius:8px;font-family:'Orbitron';font-size:13px;font-weight:900}
+#classicBox{display:none;position:fixed;inset:0;z-index:9999;background:radial-gradient(circle at center,#1a0a00,#000 70%);text-align:center}
+.classic-title{margin-top:30px;font-size:30px;font-weight:900;letter-spacing:6px;color:#FFD700;text-shadow:0 0 15px #FF6A00,0 0 35px red}
+.classic-sub{margin-top:8px;font-size:13px;color:#fff;opacity:.8}
+.classic-char{width:230px;height:340px;margin:18px auto 0;position:relative}
+.classic-char img{width:100%;height:100%;object-fit:contain;filter:drop-shadow(0 0 20px #FFD700)}
+.classic-sword{position:absolute;right:-8px;top:70px;font-size:58px;transform:rotate(25deg)}
+.classic-play{margin-top:18px;padding:14px 36px;background:linear-gradient(180deg,#FFD700,#FF6A00);border:none;border-radius:12px;font-family:'Orbitron';font-size:18px;font-weight:900}
+.classic-big-play{margin-top:60px;padding:20px 50px;background:linear-gradient(180deg,#FFD700,#FF6A00);border:none;border-radius:16px;font-family:'Orbitron';font-size:26px;font-weight:900;box-shadow:0 0 30px #FFA500;cursor:pointer}
+#profileBox{display:none;position:fixed;inset:0;z-index:10000;background:rgba(0,0,0,.85);align-items:center;justify-content:center}
+.profile-panel{width:88%;max-width:340px;height:78%;background:linear-gradient(180deg,#1a1a2e,#0a0a1a);border:2px solid #fff;border-radius:12px;display:flex;flex-direction:column;overflow:hidden}
+.profile-top{display:flex;justify-content:space-between;align-items:center;padding:12px 14px;border-bottom:1.5px solid rgba(255,255,255,.4)}
+.profile-title{font-size:22px;font-weight:900;color:#fff}
+.profile-close{width:30px;height:30px;background:#fff;border:none;border-radius:50%;font-weight:900}
+.profile-mid{flex:1;display:flex;align-items:flex-end;justify-content:center;padding:10px}
+.profile-char{width:150px;height:170px;object-fit:contain;filter:drop-shadow(0 0 12px #00e5ff)}
+.profile-bottom{text-align:center;padding:6px 0 10px;font-size:14px;font-weight:900;color:#FFD700}
+#exitGameBtn{position:absolute;top:10px;right:10px;width:36px;height:36px;background:red;color:#fff;border:2px solid #fff;border-radius:50%;font-size:18px;font-weight:900;z-index:50;display:flex;align-items:center;justify-content:center;cursor:pointer}
+#exitWarn{position:absolute;inset:0;display:none;z-index:200;background:rgba(0,0,0,.75);align-items:center;justify-content:center}
+.warn-box{width:82%;max-width:320px;background:#1a1a2e;border:2px solid #FFD700;border-radius:14px;padding:18px;text-align:center}
+.warn-title{font-size:20px;font-weight:900;color:#FF3333}
+.warn-text{margin:12px 0 16px;font-size:13px;color:#fff;line-height:1.6}
+.warn-btns{display:flex;gap:10px}
+.warn-ok{flex:1;padding:12px;background:linear-gradient(180deg,#FFD700,#FF6A00);border:none;border-radius:10px;font-family:'Orbitron';font-weight:900}
+.warn-cancel{flex:1;padding:12px;background:#333;color:#fff;border:1.5px solid #fff;border-radius:10px;font-family:'Orbitron';font-weight:900}
+#weaponsBox{display:none;position:fixed;inset:0;z-index:10001;background:rgba(0,0,0,.85);align-items:center;justify-content:center}
+.weapons-panel{width:94%;max-width:380px;height:84%;background:#fff;border:2px solid #000;position:relative;display:flex;flex-direction:column;overflow:hidden}
+.weapons-left{width:110px;min-width:110px;height:100%;border-right:2px solid #000;display:flex;flex-direction:column;overflow-y:auto;background:#fff}
+.weapons-slot{height:62px;min-height:62px;background:#fff;display:flex;flex-direction:column;align-items:center;justify-content:center;cursor:pointer;padding:6px 2px;border-bottom:2px solid #000}
+.weapons-slot.active{background:#1a3a9a;color:#fff}
+.weapons-slot.active .slot-name{color:#fff}
+.slot-icon{font-size:22px}.slot-name{font-size:10px;font-weight:900;color:#1a3a9a;letter-spacing:1px}
+.weapons-right{flex:1;display:flex;flex-direction:column;background:#000;overflow-y:auto}
+.weapons-head{padding:8px;font-family:'Comic Sans MS',cursive;font-size:16px;color:#fff}
+.weapons-show{flex:1;background:#000;display:flex;flex-direction:column;align-items:center;justify-content:center;position:relative;overflow:hidden;gap:8px;min-height:150px}
+.katana-model{font-size:100px;line-height:1;animation:spinK 2.2s linear infinite;position:relative;z-index:2}
+.katana-model.cosmic{color:#00e5ff;text-shadow:0 0 20px #00e5ff,0 0 40px #0066FF}
+.katana-model.golden{color:#FFD700;text-shadow:0 0 20px #FFD700,0 0 40px #FFAA00}
+.katana-model.fire{color:#FF3300;text-shadow:0 0 20px #FF3300,0 0 40px #FF6A00}
+.katana-model.red{color:#FF0000;text-shadow:0 0 20px #FF0000}
+.katana-model.blue{color:#0066FF;text-shadow:0 0 20px #0066FF}
+.katana-model.katana{color:#fff;text-shadow:0 0 12px #fff}
+@keyframes spinK{0%{transform:rotate(-20deg)}50%{transform:rotate(20deg) scale(1.08)}100%{transform:rotate(-20deg)}}
+#swordFx{position:absolute;inset:0;pointer-events:none;overflow:hidden;z-index:1}
+.sword-fx{position:absolute;top:-10px;border-radius:50%;animation:fxFall 1.1s linear forwards}
+.sword-fx.ice{width:10px;height:10px;background:radial-gradient(circle,#fff,#b3f0ff,#00e5ff);box-shadow:0 0 10px #00e5ff}
+.sword-fx.gold{width:9px;height:9px;background:radial-gradient(circle,#fff,#FFD700,#FFAA00);box-shadow:0 0 10px #FFD700}
+@keyframes fxFall{0%{transform:translateY(0) rotate(0deg);opacity:1}100%{transform:translateY(200px) rotate(180deg);opacity:0}}
+.model-name{color:#fff;font-size:11px;font-weight:900;position:relative;z-index:2}
+.weapons-bottom{padding:12px 10px;text-align:center;border-top:1px solid #333}
+.ability-text{color:#fff;font-size:13px;font-weight:900}
+.ability-text span{color:#FFD700}
+.weapons-close{position:absolute;top:6px;right:8px;width:26px;height:26px;background:#fff;border:none;border-radius:50%;font-weight:900;z-index:5}
+.weapons-list{display:flex;flex-direction:column;gap:8px;padding:10px}
+.weapons-item{display:flex;align-items:center;justify-content:space-between;background:#111;border:1.5px solid #333;border-radius:10px;padding:8px 10px;color:#fff}
+.weapons-item b{font-size:12px}
+.weapons-item small{font-size:9px;color:#aaa;display:block}
+.weapons-item button{padding:8px 14px;border:none;border-radius:8px;font-family:'Orbitron';font-weight:900;font-size:11px;cursor:pointer}
+#skinBox{display:none;position:fixed;inset:0;z-index:10002;background:rgba(0,0,0,.75);align-items:center;justify-content:center;padding:10px}
+.skin-panel{width:88%;max-width:330px;max-height:90vh;overflow-y:auto;background:#fff;border:2px solid #2a4db5;padding:14px 14px 22px;position:relative}
+.skin-title{font-family:'Comic Sans MS',cursive;color:#2a4db5;font-size:24px}
+.skin-close-x{position:absolute;top:8px;right:12px;color:#2a4db5;font-family:'Comic Sans MS',cursive;font-size:22px;font-weight:700;cursor:pointer;z-index:10}
+.skin-list{margin-top:14px;display:flex;flex-direction:column;gap:18px}
+.skin-card{width:100%;height:72px;border:2.5px solid #2a4db5;background:#000;position:relative;cursor:pointer;display:flex;align-items:center;overflow:hidden}
+.skin-katana-model{font-size:40px;margin-left:12px}
+.skin-info{flex:1;display:flex;flex-direction:column;justify-content:center;padding-left:10px}
+.skin-name{font-family:'Comic Sans MS',cursive;font-size:19px;color:#fff}
+.skin-sub{font-family:'Comic Sans MS',cursive;font-size:12px;color:#ddd;margin-top:2px}
+#currentSkin{display:none}
+#luckBox{display:none;position:fixed;inset:0;z-index:10003;background:rgba(0,0,0,.85);align-items:center;justify-content:center}
+.luck-panel{width:94%;height:88%;background:#000;border:2px solid #fff;position:relative;display:flex;overflow:hidden}
+.luck-left{width:110px;min-width:110px;height:100%;border-right:2px solid #fff;display:flex;flex-direction:column}
+.luck-slot{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;cursor:pointer;border-bottom:2px solid #fff;color:#fff;font-weight:900;font-size:11px;text-align:center;padding:6px}
+.luck-slot.active{background:#2a0033;border-left:4px solid #FF00FF}
+.luck-slot span{font-size:22px}
+.luck-main{flex:1;position:relative;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:14px;text-align:center;overflow:hidden}
+.luck-close{position:absolute;top:0;right:0;width:28px;height:28px;background:#fff;color:#000;border-left:2px solid #fff;border-bottom:2px solid #fff;font-weight:900;font-size:16px;cursor:pointer;display:flex;align-items:center;justify-content:center;z-index:5}
+.luck-title2{font-size:22px;font-weight:900;letter-spacing:3px;color:#FF00FF;text-shadow:0 0 12px #FF00FF}
+#luckEventView{display:flex;width:100%;height:100%;flex-direction:column;position:relative;padding-top:28px}
+.event-grid2{display:grid;grid-template-columns:1fr 1fr 1fr 1fr;grid-template-rows:1fr 1fr 1fr;gap:5px;flex:1;min-height:0;width:100%}
+.event-slot{border:2px solid #fff;background:#111;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1px;text-align:center;padding:3px;color:#fff;position:relative;overflow:hidden}
+.event-slot .ev-icon{font-size:18px}
+.event-slot .ev-name{font-size:8px;font-weight:900}
+.event-slot .ev-dmg{font-size:7px;color:#FFD700;font-weight:900}
+.event-slot.hl{background:#fff!important;color:#000;transform:scale(1.05);z-index:2}
+.event-slot.owned{opacity:.55}
+.event-center{grid-column:2/4;grid-row:2/3;border:2px solid #FFD700;background:radial-gradient(circle,#2a0033,#000);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;cursor:pointer}
+.event-center .ev-dia{font-size:16px}
+.event-center .ev-spin{font-size:12px;font-weight:900;color:#FFD700}
+.event-center .ev-sub{font-size:7px;color:#fff}
+.mini-katana{position:relative;width:34px;height:22px;display:flex;align-items:center;justify-content:center}
+.mini-blade{width:28px;height:5px;border-radius:0 4px 4px 0}
+.mini-handle{width:7px;height:7px;background:#5a3a00;border-radius:2px;margin-left:-1px}
+.mini-blade.red{background:linear-gradient(90deg,#8B0000,#FF0000,#FF5555);box-shadow:0 0 8px #FF0000}
+.mini-blade.fire{background:linear-gradient(90deg,#FF6A00,#FFFF00,#FFFACD);box-shadow:0 0 10px #FFFF00}
+.mini-blade.blue{background:linear-gradient(90deg,#0033AA,#0066FF,#66AAFF);box-shadow:0 0 8px #0066FF}
+.mini-blade.golden{background:linear-gradient(90deg,#8B6500,#FFD700,#FFFF00);box-shadow:0 0 10px #FFD700}
+.mini-blade.cosmic{background:linear-gradient(90deg,#004466,#00e5ff,#b3f0ff);box-shadow:0 0 10px #00e5ff}
+#rewardPopup{display:none;position:fixed;inset:0;z-index:20000;background:rgba(0,0,0,.55);align-items:center;justify-content:center}
+.reward-box{position:relative;min-width:300px;max-width:92%;background:linear-gradient(90deg,#1a0033,#000 30%,#000 70%,#1a0033);border:3px solid #FFD700;border-radius:16px;padding:18px 22px;display:flex;flex-direction:column;align-items:center;gap:10px;animation:rewardX .45s ease-out;text-align:center}
+@keyframes rewardX{0%{transform:translateX(-80px) scale(.9);opacity:0}100%{transform:translateX(0) scale(1);opacity:1}}
+.reward-icon{font-size:48px}
+.reward-text{font-size:19px;font-weight:900;color:#FFD700}
+.reward-sub{margin-top:4px;font-size:10px;color:#fff;opacity:.85}
+.reward-x{position:absolute;top:6px;right:8px;width:20px;height:20px;background:#fff;color:#000;border:none;border-radius:50%;font-size:12px;font-weight:900;cursor:pointer;z-index:2}
+.reward-model{width:100%;min-height:90px;display:flex;align-items:center;justify-content:center}
+.reward-model .rm-gun{width:180px;height:34px;background:linear-gradient(90deg,#111,#444,#111);border:2px solid #FFD700;border-radius:4px;position:relative}
+.reward-model .rm-gun:after{content:'';position:absolute;right:-36px;top:10px;width:36px;height:10px;background:#888}
+.reward-model .rm-gun:before{content:'';position:absolute;left:50%;bottom:-24px;width:16px;height:24px;background:#FF6A00;border:2px solid #FFD700}
+.reward-model .rm-bundle{width:90px;height:110px;background:linear-gradient(180deg,#111,#000);border:2px solid #FFD700;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:40px}
+.reward-model .rm-katana{width:160px;height:14px;background:linear-gradient(90deg,#888,#fff);border-radius:0 8px 8px 0;box-shadow:0 0 14px #fff;position:relative}
+.reward-model .rm-katana:after{content:'';position:absolute;left:-18px;top:-3px;width:18px;height:20px;background:#5a3a00;border-radius:3px}
+#storeBox,#vaultBox{display:none;position:fixed;inset:0;z-index:10005;background:rgba(0,0,0,.85);align-items:center;justify-content:center}
+#vaultBox{z-index:10006}
+.store-panel{width:94%;height:88%;background:#000;border:2px solid #fff;position:relative;display:flex;overflow:hidden}
+.store-left{width:110px;min-width:110px;height:100%;border-right:2px solid #fff;display:flex;flex-direction:column}
+.store-slot{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;cursor:pointer;border-bottom:2px solid #fff;color:#fff;font-weight:900;font-size:11px;text-align:center;padding:6px}
+.store-slot.active{background:#003300;border-left:4px solid #00FF00}
+.store-slot span{font-size:22px}
+.store-main{flex:1;position:relative;display:flex;flex-direction:column;align-items:center;justify-content:flex-start;padding:14px;text-align:center;overflow-y:auto}
+.store-close{position:absolute;top:0;right:0;width:28px;height:28px;background:#fff;color:#000;border-left:2px solid #fff;border-bottom:2px solid #fff;font-weight:900;font-size:16px;cursor:pointer;display:flex;align-items:center;justify-content:center;z-index:5}
+.store-title{font-size:20px;font-weight:900;letter-spacing:3px;color:#00FF00;text-shadow:0 0 12px #00FF00}
+.bundle-card{width:100%;max-width:360px;margin-top:12px;border:2px solid #FFD700;border-radius:14px;background:linear-gradient(180deg,#1a1200,#000);overflow:hidden}
+.bundle-top{display:flex;gap:10px;padding:10px;text-align:left}
+.bundle-dress{width:88px;height:108px;border-radius:10px;border:2px solid #FFD700;background:radial-gradient(circle,#1a1200,#000);flex-shrink:0;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;padding-bottom:6px}
+.bundle-dress .d-head{width:26px;height:26px;background:#ffc79a;border-radius:50%;border:2px solid #111}
+.bundle-dress .d-jacket{width:56px;height:52px;background:linear-gradient(180deg,#111,#000);border:2px solid #FFD700;border-radius:8px 8px 4px 4px;margin-top:-4px;position:relative}
+.bundle-dress .d-jacket::before{content:'';position:absolute;left:50%;top:4px;transform:translateX(-50%);width:3px;height:44px;background:#00e5ff}
+.bundle-dress .d-pant{width:38px;height:18px;background:#111;border-top:2px solid #FFD700;display:flex;gap:8px;justify-content:center}
+.bundle-dress .d-pant i{width:10px;height:14px;background:#222;display:block}
+.bundle-info{flex:1}
+.bundle-name{font-size:13px;font-weight:900;color:#FFD700}
+.bundle-desc{font-size:9px;color:#fff;opacity:.8;margin-top:4px;line-height:1.5}
+.bundle-items{font-size:8px;color:#00e5ff;margin-top:4px}
+.bundle-price-row{display:flex;align-items:center;justify-content:space-between;padding:8px 10px;border-top:1px solid #333}
+.bundle-price{font-size:14px;font-weight:900;color:#00e5ff}
+.bundle-buy{padding:9px 18px;background:linear-gradient(180deg,#00e5ff,#0066FF);border:none;border-radius:10px;font-family:'Orbitron';font-size:12px;font-weight:900;color:#fff;cursor:pointer}
+.bundle-buy.owned{background:#333;color:#888}
+.bundle-equip{padding:9px 18px;background:linear-gradient(180deg,#00FF00,#00AA00);border:none;border-radius:10px;font-family:'Orbitron';font-size:12px;font-weight:900;color:#000;cursor:pointer}
+.bundle-equip.equipped{background:#FFD700}
+.gun-card{width:100%;max-width:360px;margin-top:12px;border:2px solid #00FF00;border-radius:14px;background:linear-gradient(180deg,#001a00,#000);overflow:hidden}
+.emote-card{width:100%;max-width:360px;margin-top:12px;border:2px solid #FF00FF;border-radius:14px;background:linear-gradient(180deg,#1a001a,#000);overflow:hidden}
+.emote-preview{width:88px;height:108px;border-radius:10px;border:2px solid #FF00FF;background:radial-gradient(circle,#2a0033,#000);flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:44px;animation:dancePreview .8s infinite}
+@keyframes dancePreview{0%{transform:rotate(-8deg)}50%{transform:rotate(8deg) scale(1.12)}100%{transform:rotate(-8deg)}}
+.store-soon{margin-top:12px;font-size:16px;font-weight:900;color:#FFD700}
+.store-sub{margin-top:8px;font-size:11px;color:#aaa}
+.store-empty{margin-top:12px;width:100%;max-width:340px;border:2px dashed #444;border-radius:12px;padding:12px;color:#777;font-size:10px;line-height:1.8}
+.gun-diagram{width:88px;height:108px;border-radius:10px;border:2px solid #00FF00;background:radial-gradient(circle,#001a00,#000);flex-shrink:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px}
+.gun-diagram .g-body{height:10px;background:#333;border:1px solid #888;border-radius:2px;position:relative}
+.gun-diagram .g-barrel{height:4px;background:#888}
+.gun-diagram .g-mag{width:8px;height:16px;background:#222;border:1px solid #888}
+.gun-diagram .g-stock{width:14px;height:8px;background:#5a3a00}
+.gun-diagram .g-name{font-size:8px;color:#00FF00;font-weight:900}
+#rotatePrompt{display:none;position:fixed;inset:0;z-index:999999;background:#000;flex-direction:column;align-items:center;justify-content:center;gap:14px;text-align:center;padding:20px}
+#rotatePrompt .phone{font-size:70px;animation:phoneRotate 1.4s ease-in-out infinite}
+@keyframes phoneRotate{0%{transform:rotate(0deg)}50%{transform:rotate(90deg)}100%{transform:rotate(90deg)}}
+#rotatePrompt .r1{font-size:22px;font-weight:900;color:#FFD700;letter-spacing:2px}
+#rotatePrompt .r2{font-size:15px;font-weight:900;color:#fff}
+#rotatePrompt .rNote{font-size:11px;color:#FFD700;background:rgba(255,215,0,.12);border:1px solid #FFD700;padding:8px 12px;border-radius:10px;line-height:1.6}
+#rotateWait{font-size:12px;font-weight:900;color:#00FF00;background:rgba(0,255,0,.12);border:1px solid #00FF00;padding:8px 12px;border-radius:10px;display:none}
+#rotateCheckBtn{padding:14px 28px;background:linear-gradient(180deg,#FFD700,#FF6A00);border:none;border-radius:12px;font-family:'Orbitron';font-weight:900;font-size:15px;color:#000}
+@media (orientation:portrait){
+  #rotatePrompt{display:flex!important}
+  .game-screen,#screen5{display:none!important}
+}
+@media (orientation:landscape){
+  #rotatePrompt{display:none!important}
+  .game-screen{display:block!important}
+}
+.ctrl-btn{position:absolute;z-index:40;width:56px;height:56px;border-radius:50%;background:rgba(0,0,0,.55);border:2px solid rgba(255,255,255,.75);color:#fff;display:flex;flex-direction:column;align-items:center;justify-content:center;font-weight:900;touch-action:none;line-height:1}
+.ctrl-btn.small{width:52px;height:52px}
+.ctrl-btn .b-ico{font-size:24px;line-height:1}
+.ctrl-btn .b-txt{font-size:7px;letter-spacing:1px;margin-top:2px;color:#FFD700}
+.ctrl-btn.active{background:#FFD700;color:#000;border-color:#FFD700}
+.ctrl-btn.active .b-txt{color:#000}
+.ctrl-btn.editing{border:2px dashed #FFD700 !important;box-shadow:0 0 14px #FFD700;animation:blink 1s infinite}
+#jumpBtn{right:20px;bottom:210px}
+#crouchBtn{right:102px;bottom:210px}
+#proneBtn{right:178px;bottom:210px}
+#freelookBtn{right:20px;bottom:300px}
+#proneBtn .b-ico{transform:rotate(90deg);display:block}
+#settingsBtn{position:absolute;top:10px;right:52px;width:38px;height:38px;background:#FFD700;color:#000;border:2px solid #fff;border-radius:50%;font-size:20px;font-weight:900;z-index:60;display:flex;align-items:center;justify-content:center;cursor:pointer;box-shadow:0 0 10px #FFD700}
+#lobbySettingsBtn{position:absolute;top:6px;right:124px;width:38px;height:38px;background:#FFD700;color:#000;border:2px solid #fff;border-radius:50%;font-size:20px;font-weight:900;z-index:25;display:flex;align-items:center;justify-content:center;cursor:pointer;box-shadow:0 0 10px #FFD700}
+#customPanel{position:absolute;inset:0;background:transparent;pointer-events:none;display:none;z-index:70;align-items:flex-start;justify-content:center;padding-top:10px}
+#customPanel.show{display:flex}
+#customBar{pointer-events:auto;background:#FFD700;color:#000;padding:10px 12px;border-radius:12px;font-weight:900;font-size:12px;text-align:center;line-height:1.6;box-shadow:0 0 16px #FFD700}
+#customBar button{margin:4px 4px 0;padding:7px 10px;border:none;border-radius:8px;font-weight:900;background:#000;color:#FFD700;font-family:'Orbitron';font-size:11px}
+#settingsBox{display:none;position:fixed;inset:0;z-index:10007;background:rgba(0,0,0,.85);align-items:center;justify-content:center}
+.settings-panel{width:92%;max-width:340px;background:#111;border:2px solid #FFD700;border-radius:14px;padding:16px;text-align:center}
+.settings-panel h2{color:#FFD700;font-size:18px}
+.settings-panel p{color:#ccc;font-size:11px;margin:8px 0;line-height:1.6}
+.settings-panel .sens-row{display:flex;justify-content:space-between;color:#fff;font-size:11px;margin-top:10px}
+.settings-panel input{width:100%;margin:6px 0}
+.settings-panel button{width:100%;padding:12px;border:none;border-radius:10px;font-family:'Orbitron';font-weight:900;font-size:13px;margin-top:8px;cursor:pointer}
+</style>
+</head>
+<body>
+<div id="rotatePrompt"><div class="phone">📱</div><div class="r1">MOBILE GHUMAO</div><div class="r2">ROTATE YOUR PHONE</div><div class="rNote">1. Phone ka <b>Auto-Rotate ON</b> karo<br>2. Phone ko <b>Side / Horizontal</b> me ghumao<br>3. Lock Orientation OFF hona chahiye</div><div id="rotateWait">✅ TEDHA HO GAYA - GAME START HO RAHA HAI...</div><button id="rotateCheckBtn" onclick="event.stopPropagation();checkRotate()">🔄 CHECK KARO</button></div>
+<div id="exitZone" onclick="exitFull(event)"></div>
+<div class="game-screen" id="mainScreen">
+<div id="screen1"><div class="cosmic-big">COSMIC </div></div>
+<div id="screen2"><div class="content2"><div class="cosmic-corner">COSMIC</div><div class="center-box"><div class="new-era">THE NEW ERA</div></div><div class="fire" id="fireBox"></div><div class="loading-area"><div class="loading-box"><div id="bar"></div></div><div id="percent">LOADING... 0%</div></div></div></div>
+<div id="screen3"><div class="content3"><div class="cosmic-top">COSMIC</div><div class="tap-begin">TAP TO NEXT</div></div></div>
+<div id="screen4"><div class="lobby">
+<div class="lobby-top"><div class="lobby-cosmic">COSMIC</div></div>
+<div id="lobbySettingsBtn" onclick="event.stopPropagation();openSettings(event)">⚙️</div>
+<div class="side-box side-classic" id="btnClassic" onclick="event.stopPropagation();openClassic()"><div class="side-label"><span class="ico">⚔️</span>CLASSIC</div></div>
+<div id="currencyBar"><div class="cur-row">🪙 <span id="coinTop">0</span></div><div class="cur-row dia">💎 <span id="diamondTop">∞</span></div></div>
+<div class="side-box side-right" onclick="event.stopPropagation();openProfile()"><div class="side-label"><span class="ico">👤</span>PROFILE</div></div>
+<div class="side-box side-luck" id="btnLuck" onclick="event.stopPropagation();openLuck()"><div class="side-label"><span class="ico">🎰</span>LUCK ROYALE</div></div>
+<div class="side-box side-store" id="btnStore" onclick="event.stopPropagation();openStore()"><div class="side-label"><span class="ico">🛠️</span>STORE</div></div>
+<div class="side-box side-vault" id="btnVault" onclick="event.stopPropagation();openVault()"><div class="side-label vault-shiny">VAULT</div></div>
+<div id="timerBox"><div id="cutBtn">X</div><div id="timerNum">4</div><div id="timerText">GAME STARTING...</div></div>
+<div class="char-wrap" id="charWrap"><div class="bundle-badge" id="bundleBadge">COSMIC WARRIOR BUNDLE ON</div><canvas id="lobby3D" width="340" height="420" style="width:100%;height:100%"></canvas></div>
+<div id="emoteWheel"><div class="emote-btn" id="slot-dance" style="left:50%;top:6%" data-emote="dance" onclick="event.stopPropagation();doEmote('dance')">+</div><div class="emote-btn" id="slot-clap" style="left:88%;top:28%" data-emote="clap" onclick="event.stopPropagation();doEmote('clap')">+</div><div class="emote-btn" style="left:88%;top:72%" data-emote="">+</div><div class="emote-btn" style="left:50%;top:94%" data-emote="">+</div><div class="emote-btn" style="left:12%;top:72%" data-emote="">+</div><div class="emote-btn" style="left:12%;top:28%" data-emote="">+</div><div class="emote-btn" style="left:50%;top:50%;width:36px;height:36px" data-emote="">+</div><div class="emote-center" onclick="event.stopPropagation();closeEmoteWheel()">EMOTE<br>X</div></div>
+<div class="emote-name" id="emoteName"></div>
+<div class="lobby-bottom"><button class="start-btn" id="startBtn">START</button><div class="big-box" id="btnWeapons" onclick="event.stopPropagation();openWeapons()"><span class="ico">🗡️</span><span>WEAPONS</span></div></div>
+</div></div>
+</div>
+<div id="screen5"><div id="game"><canvas id="cv"></canvas><div id="crosshair"><i></i></div><div id="camHint"></div><div id="hpBox">YOU - HP <span id="hpText">200</span>/200<div id="hpBar"><div id="hpFill"></div></div><div>Enemy: <span id="left">50</span>/50<br><span id="gameTimer">Time: 00:00</span><br><span id="gunHud">KATANA</span></div></div><div id="currentSkin"></div><div id="exitGameBtn" onclick="showExitWarn(event)">X</div>
+<div id="joy"><div id="stick"></div><div class="joy-label">🚶 CHALO</div></div>
+<div id="joyRun"><div id="stickRun"></div><div class="joy-label">🏃 DAUDO</div></div>
+<div id="fireBtn">FIRE</div><div id="reloadBtn"><span>🔄</span><span>RELOAD</span></div><div id="ammoHud"><b id="ammoText">30 / 30</b><br><span id="ammoSub">MP40 • RELOAD READY</span></div><div id="gunBtn" onclick="toggleGunMode()">🔫</div>
+<div id="jumpBtn" class="ctrl-btn" data-btn="jumpBtn"><span class="b-ico">🏃</span><span class="b-ico" style="font-size:12px;margin-top:-4px">⬆️</span><span class="b-txt">JUMP</span></div>
+<div id="crouchBtn" class="ctrl-btn small" data-btn="crouchBtn"><span class="b-ico">🧎</span><span class="b-txt">BAITHO</span></div>
+<div id="proneBtn" class="ctrl-btn small" data-btn="proneBtn"><span class="b-ico">🧎</span><span class="b-txt">LETO</span></div>
+<div id="freelookBtn" class="ctrl-btn small" data-btn="freelookBtn"><span class="b-ico">👁️</span><span class="b-txt">LOOK</span></div>
+<div id="settingsBtn" onclick="event.stopPropagation();openSettings(event)">⚙️</div>
+<div id="customPanel"><div id="customBar">✋ BUTTONS KO KAHIN BHI DRAG KARO<br>FIRE / GUN / JUMP / BAITHO / LETO / LOOK / CHALO / DAUDO / RELOAD<br><button onclick="event.stopPropagation();saveCustomLayout()">✅ SAVE</button><button onclick="event.stopPropagation();resetCustomLayout()">↩️ RESET</button><button onclick="event.stopPropagation();closeCustomize()">❌ CLOSE</button></div></div>
+<div id="exitWarn" onclick="if(event.target.id==='exitWarn')hideExitWarn()"><div class="warn-box"><div class="warn-title">WARNING</div><div class="warn-text">Lobby wapas jana hai?</div><div class="warn-btns"><button class="warn-ok" onclick="confirmExit()">OK</button><button class="warn-cancel" onclick="hideExitWarn()">CANCEL</button></div></div></div><div id="winnerBox"><div id="winnerText">WINNER</div><div id="winnerSub">YOU WON!</div><button id="giftBtn">RETURN TO LOBBY</button></div><div id="deadBox"><div id="deadText">ELIMINATED</div><button id="deadReturnBtn">RETURN TO LOBBY</button></div></div></div>
+<div id="classicBox"><button onclick="event.stopPropagation();closeClassic()" style="position:absolute;top:8px;right:10px;background:red;color:#fff;border:none;padding:10px 16px;border-radius:8px;font-weight:900">X</button><div class="classic-title">CLASSIC MODE</div><div class="classic-sub">YOUR WARRIOR IS READY - PHOTO HATA DIYA, SIRF PLAY HAI</div><button class="classic-big-play" onclick="event.stopPropagation();closeClassic();document.getElementById('startBtn').click()">▶ PLAY</button><div style="margin-top:14px;color:#fff;font-size:12px">PLAY pe click karo - Seedha GAME START hoga</div></div>
+<div id="luckBox" onclick="if(event.target.id==='luckBox')closeLuck()"><div class="luck-panel"><div class="luck-left"><div class="luck-slot active" id="eventTabBtn" onclick="event.stopPropagation();showEventInsideLuck(this)"><span>🎰</span>EVENT<br>LUCK</div><div class="luck-slot" onclick="event.stopPropagation();showLuckNormal(this,'REWARDS')"><span>🏆</span>MY<br>REWARDS</div><div class="luck-slot" onclick="event.stopPropagation();showLuckNormal(this,'TOP')"><span>👑</span>TOP<br>WINNERS</div></div><div class="luck-main"><div class="luck-close" onclick="event.stopPropagation();closeLuck()">X</div><div id="luckNormalView" style="display:none;flex-direction:column;align-items:center;justify-content:center;width:100%;height:100%"><div class="luck-title2">🎰 LUCK ROYALE</div><div id="luckTabText">YOUR REWARDS</div><button style="margin-top:10px;padding:10px 24px;background:linear-gradient(180deg,#FF00FF,#FF6A00);border:none;border-radius:10px;font-family:'Orbitron';color:#fff;font-weight:900" onclick="event.stopPropagation();showEventInsideLuck(document.getElementById('eventTabBtn'))">OPEN EVENT LUCK</button></div><div id="luckEventView"><div style="text-align:center;font-weight:900">🎰 EVENT LUCK</div><div class="event-grid2"><div class="event-slot" data-idx="0"><div class="mini-katana"><div class="mini-blade fire"></div><div class="mini-handle"></div></div><div class="ev-name">FIRE KATANA</div><div class="ev-dmg">100 DAMAGE</div></div><div class="event-slot" data-idx="1"><div class="ev-icon">X</div><div class="ev-name">NO</div></div><div class="event-slot" data-idx="2"><div class="mini-katana"><div class="mini-blade red"></div><div class="mini-handle"></div></div><div class="ev-name">RED KATANA</div><div class="ev-dmg">40 DAMAGE</div></div><div class="event-slot" data-idx="3"><div class="mini-katana"><div class="mini-blade golden"></div><div class="mini-handle"></div></div><div class="ev-name">GOLDEN KATANA</div><div class="ev-dmg">75 DAMAGE</div></div><div class="event-slot" data-idx="4"><div class="mini-katana"><div class="mini-blade blue"></div><div class="mini-handle"></div></div><div class="ev-name">BLUE KATANA</div><div class="ev-dmg">40 DAMAGE</div></div><div class="event-slot" data-idx="5"><div class="mini-katana"><div class="mini-blade cosmic"></div><div class="mini-handle"></div></div><div class="ev-name">COSMIC KATANA</div><div class="ev-dmg">80 DAMAGE</div></div><div class="event-slot" data-idx="6"><div class="ev-icon">COIN</div><div class="ev-name">100 COINS</div></div><div class="event-slot" data-idx="7"><div class="ev-icon">COIN</div><div class="ev-name">100 COINS</div></div><div class="event-slot" data-idx="8"><div class="ev-icon">COIN</div><div class="ev-name">100 COINS</div></div><div class="event-slot" data-idx="9"><div class="ev-icon">COIN</div><div class="ev-name">100 COINS</div></div><div class="event-center" onclick="event.stopPropagation();spinEvent()"><div class="ev-dia">∞</div><div class="ev-spin">SPIN</div><div class="ev-sub">DIAMOND ∞</div></div></div></div></div></div></div>
+<div id="storeBox" onclick="if(event.target.id==='storeBox')closeStore()"><div class="store-panel"><div class="store-left"><div class="store-slot active" onclick="event.stopPropagation();showStoreTab(this,'bundles')"><span>📦</span>BUNDLES</div><div class="store-slot" onclick="event.stopPropagation();showStoreTab(this,'guns')"><span>🔫</span>GUNS</div><div class="store-slot" onclick="event.stopPropagation();showStoreTab(this,'emotes')"><span>💃</span>EMOTES</div><div class="store-slot" onclick="event.stopPropagation();showStoreTab(this,'others')"><span>⭐</span>OTHERS</div></div><div class="store-main"><div class="store-close" onclick="event.stopPropagation();closeStore()">X</div><div class="store-title">🛠️ STORE - <span id="storeDia">∞</span></div><div id="storeBundlesView" style="width:100%;display:flex;flex-direction:column;align-items:center"></div><div id="storeGunsView" style="width:100%;display:none;flex-direction:column;align-items:center"></div><div id="storeEmotesView" style="width:100%;display:none;flex-direction:column;align-items:center"><div class="emote-card"><div class="bundle-top"><div class="emote-preview">DANCE</div><div class="bundle-info"><div class="bundle-name" style="color:#FF00FF">DANCE + CLAP EMOTE PACK</div><div class="bundle-desc">Dance + Tali bajane wala Emote - Dono ek saath!</div><div class="bundle-items">Dance Clap Wheel me 2 Slot Unlock</div></div></div><div class="bundle-price-row"><div class="bundle-price">500</div><div style="display:flex;gap:6px"><button class="bundle-buy" id="emoteBuyBtn" style="background:linear-gradient(180deg,#FF00FF,#FF6A00)" onclick="event.stopPropagation();buyEmote()">BUY 500</button><button class="bundle-equip" id="emoteEquipBtn" style="display:none" onclick="event.stopPropagation();toggleEmoteEquip()">EQUIP</button></div></div></div><div id="emoteMsg" style="margin-top:8px;font-size:10px;color:#aaa">Diamond ∞ hai!</div></div><div id="storeOtherView" style="width:100%;display:none;flex-direction:column;align-items:center"><div style="font-size:44px" id="storeIcon">⭐</div><div style="font-size:16px;font-weight:900;color:#fff" id="storeTabName">OTHERS</div><div class="store-soon">COMING SOON</div><div class="store-sub" id="storeTabSub">Others ka naya interface</div></div></div></div></div>
+<div id="vaultBox" onclick="if(event.target.id==='vaultBox')closeVault()"><div class="store-panel"><div class="store-left"><div class="store-slot active" onclick="event.stopPropagation();showVaultTab(this,'all')"><span>📦</span>ALL<br>ITEMS</div><div class="store-slot" onclick="event.stopPropagation();showVaultTab(this,'bundles')"><span>👕</span>BUNDLES</div><div class="store-slot" onclick="event.stopPropagation();showVaultTab(this,'emotes')"><span>💃</span>EMOTES</div><div class="store-slot" onclick="event.stopPropagation();showVaultTab(this,'weapons')"><span>🗡️</span>WEAPONS</div><div class="store-slot" onclick="event.stopPropagation();showVaultTab(this,'guns')"><span>🔫</span>GUNS</div></div><div class="store-main"><div class="store-close" onclick="event.stopPropagation();closeVault()">X</div><div class="store-title">💎 VAULT</div><div id="vaultContent" style="width:100%;display:flex;flex-direction:column;align-items:center"></div></div></div></div>
+<div id="rewardPopup" onclick="closeRewardPopup()"><div class="reward-box" onclick="event.stopPropagation();closeRewardPopup()"><button class="reward-x" onclick="closeRewardPopup()">X</button><div class="reward-model" id="rewardModel"></div><div class="reward-icon" id="rewardIcon" style="display:none">COIN</div><div><div class="reward-text" id="rewardText">YOU WON 100 COINS</div><div class="reward-sub">Tap to close</div></div></div></div>
+<div id="profileBox" onclick="if(event.target.id==='profileBox')closeProfile()"><div class="profile-panel"><div class="profile-top"><div class="profile-title">Profile</div><button class="profile-close" onclick="closeProfile()">X</button></div><div class="profile-mid" style="flex-direction:column;align-items:center;justify-content:center;gap:10px"><div style="font-size:60px">👤</div><div style="color:#fff;font-size:14px;font-weight:900">PLAYER PROFILE</div><div style="color:#aaa;font-size:11px">Photo Hata Diya Hai</div></div><div class="profile-bottom">PROFILE</div><div style="text-align:center;color:#FFD700;font-size:13px;padding-bottom:8px"> <span id="coinProfile">0</span> | <span id="diamondProfile">∞</span></div></div></div>
+<div id="weaponsBox" onclick="if(event.target.id==='weaponsBox')closeWeapons()"><div class="weapons-panel"><button class="weapons-close" onclick="closeWeapons()">X</button><div style="display:flex;flex:1;min-height:0"><div class="weapons-left"><div class="weapons-slot active" id="tab-katana" onclick="event.stopPropagation();showWeaponsTab('katana')"><div class="slot-icon">🗡️</div><div class="slot-name">KATANA</div></div><div class="weapons-slot" id="tab-ar" onclick="event.stopPropagation();showWeaponsTab('ar')"><div class="slot-icon">🔫</div><div class="slot-name">AR</div></div><div class="weapons-slot" id="tab-smg" onclick="event.stopPropagation();showWeaponsTab('smg')"><div class="slot-icon">🔫</div><div class="slot-name">SMG</div></div><div class="weapons-slot" id="tab-shotgun" onclick="event.stopPropagation();showWeaponsTab('shotgun')"><div class="slot-icon">💥</div><div class="slot-name">SHOTGUN</div></div><div class="weapons-slot" id="tab-sniper" onclick="event.stopPropagation();showWeaponsTab('sniper')"><div class="slot-icon">🎯</div><div class="slot-name">SNIPER</div></div></div><div class="weapons-right"><div class="weapons-head"><u>Weapons</u> - <span id="weaponsTabLabel" style="font-size:12px">KATANA</span></div><div id="weaponsKatanaView"><div class="weapons-show"><div id="swordFx"></div><div class="katana-model katana" id="katanaModel">🗡️</div><div class="model-name" id="modelName">NORMAL KATANA</div></div><div class="weapons-bottom"><div class="ability-text" id="abilityText">ABILITY DAMAGE <span>40</span></div><div style="margin-top:8px"><button onclick="event.stopPropagation();openSkin()" style="padding:10px 22px;background:#FFD700;border:none;border-radius:10px;font-family:'Orbitron';font-weight:900">CHANGE KATANA</button></div></div><div class="weapons-list" id="weaponsKatanaList"></div></div><div id="weaponsGunsView" style="display:none"><div class="weapons-list" id="weaponsGunsList"></div></div></div></div></div></div>
+<div id="skinBox"><div class="skin-panel"><div class="skin-close-x" onclick="closeSkin()">x</div><div class="skin-title">Select Katana - Sirf Kharidi Hui</div><div class="skin-list" id="skinListBox"><div class="skin-card" style="border-color:#00aaff;background:#001a2e" onclick="selectKatana('cosmic')"><div class="skin-katana-model" style="color:#00e5ff">🗡️</div><div class="skin-info"><div class="skin-name" style="color:#b3f0ff">Cosmic Katana - BLUE + BARAF</div><div class="skin-sub">Damage 80 - Baraf Giregi</div></div></div><div class="skin-card" style="border-color:#aaa;background:#1a1a1a" onclick="selectKatana('katana')"><div class="skin-katana-model" style="color:#fff">🗡️</div><div class="skin-info"><div class="skin-name">Normal Katana</div><div class="skin-sub">Damage 40 - Normal</div></div></div><div class="skin-card" style="border-color:#FFD700;background:#3a2a00" onclick="selectKatana('golden')"><div class="skin-katana-model" style="color:#FFD700">🗡️</div><div class="skin-info"><div class="skin-name" style="color:#FFD700">Golden Katana - GOLDEN GIRG</div><div class="skin-sub">Damage 75 - Golden Animation</div></div></div><div class="skin-card" id="fireCard" style="display:none;border-color:#FF3300;background:#2a0800" onclick="selectKatana('fire')"><div class="skin-katana-model" style="color:#FF3300">🗡️</div><div class="skin-info"><div class="skin-name" style="color:#FF3300">Fire Katana</div><div class="skin-sub">Damage 100</div></div></div><div class="skin-card" id="redCard" style="display:none;border-color:#FF0000;background:#2a0000" onclick="selectKatana('red')"><div class="skin-katana-model" style="color:#FF5555">Red Katana</div><div class="skin-sub">Damage 40</div></div></div><div class="skin-card" id="blueCard" style="display:none;border-color:#0066FF;background:#001a2e" onclick="selectKatana('blue')"><div class="skin-katana-model" style="color:#0066FF">🗡️</div><div class="skin-info"><div class="skin-name" style="color:#66AAFF">Blue Katana</div><div class="skin-sub">Damage 40</div></div></div></div></div></div>
+<div id="settingsBox" onclick="if(event.target.id==='settingsBox')closeSettings()"><div class="settings-panel" onclick="event.stopPropagation()"><h2>⚙️ SETTINGS</h2><p>Ek hi Setting me sab kuch hai</p><b style="color:#FFD700;font-size:11px">CAMERA SENSITIVITY</b><div class="sens-row"><span>Camera Sensitivity</span><span id="sensVal" style="color:#FFD700">5</span></div><input type="range" id="sensSlider" min="1" max="10" step="0.5" value="5" oninput="changeSens(this.value)"><div style="color:#aaa;font-size:9px">1 = Slow - 10 = Super Fast</div><button style="background:linear-gradient(180deg,#FFD700,#FF6A00);color:#000" onclick="event.stopPropagation();startCustomizeFromSettings()">🎯 GAME BUTTONS CUSTOMIZE</button><button style="background:#222;color:#fff;border:1px solid #fff" onclick="event.stopPropagation();resetCustomLayout();closeSettings()">↩️ RESET TO DEFAULT</button><button style="background:#333;color:#fff" onclick="event.stopPropagation();closeSettings()">❌ CLOSE</button></div></div>
+<!-- ===== PART 1 FINAL KHATAM ===== -->
+<script>
+let bundleOwned=false,bundleEquipped=false,emoteOwned=false,emoteEquipped=false,currentEmote=null,emoteTimer=0,emoteNameMap={dance:'DANCE!',clap:'TALI BAJAO!'},vaultTab='all';
+let diamonds=Infinity,coins=999;
+function saveGameData(){
+  try{
+    let data={
+      coins:coins,
+      diamonds:isFinite(diamonds)?diamonds:'INF',
+      ownedBundles:ownedBundles,
+      ownedGuns:ownedGuns,
+      ownedKatanas:ownedKatanas,
+      equippedBundle:equippedBundle,
+      currentGun:currentGun,
+      currentSkin:currentSkin,
+      emoteOwned:emoteOwned,
+      emoteEquipped:emoteEquipped,
+      bundleOwned:bundleOwned,
+      bundleEquipped:bundleEquipped,
+      wonItems:wonItems
+    };
+    localStorage.setItem('cosmic_save',JSON.stringify(data));
+  }catch(e){}
+}
+function loadGameData(){
+  try{
+    let raw=localStorage.getItem('cosmic_save');
+    if(!raw) return;
+    let d=JSON.parse(raw);
+    if(d.coins!==undefined) coins=d.coins;
+    if(d.diamonds!==undefined) diamonds=(d.diamonds==='INF'?Infinity:d.diamonds);
+    if(d.ownedBundles) ownedBundles=d.ownedBundles;
+    if(d.ownedGuns) ownedGuns=d.ownedGuns;
+    if(d.ownedKatanas) ownedKatanas=d.ownedKatanas;
+    if(d.equippedBundle) equippedBundle=d.equippedBundle;
+    if(d.currentGun) currentGun=d.currentGun;
+    if(d.currentSkin) currentSkin=d.currentSkin;
+    if(d.emoteOwned!==undefined) emoteOwned=d.emoteOwned;
+    if(d.emoteEquipped!==undefined) emoteEquipped=d.emoteEquipped;
+    if(d.bundleOwned!==undefined) bundleOwned=d.bundleOwned;
+    if(d.bundleEquipped!==undefined) bundleEquipped=d.bundleEquipped;
+    if(d.wonItems) wonItems=d.wonItems;
+  }catch(e){}
+}
+loadGameData();
+setInterval(saveGameData,2000);
+let BUNDLES=[{id:'b1',name:'COSMIC WARRIOR BUNDLE',desc:'Black Jacket + Golden Armor + Blue Neon',items:'Black Jacket Golden Armor Blue Neon',price:399,emoji:'*',color:'#FFD700',c3:0x111111},{id:'b2',name:'FIRE WARRIOR BUNDLE',desc:'Fire Jacket + Red Armor',items:'Fire Jacket Red Glow Fire Belt',price:499,emoji:'FIRE',color:'#FF3300',c3:0xFF3300},{id:'b3',name:'ICE WARRIOR BUNDLE',desc:'Ice Blue Dress + Frost Armor',items:'Ice Jacket Frost Armor',price:499,emoji:'ICE',color:'#00e5ff',c3:0x00e5ff},{id:'b4',name:'GOLD KING BUNDLE',desc:'Full Gold Dress - King Look',items:'Gold Jacket Crown Gold Belt',price:699,emoji:'KING',color:'#FFD700',c3:0xFFD700},{id:'b5',name:'PURPLE VIP BUNDLE',desc:'Purple Neon + VIP Badge',items:'Purple Jacket VIP Badge',price:599,emoji:'VIP',color:'#FF00FF',c3:0xFF00FF},{id:'b6',name:'THUNDER BUNDLE',desc:'Yellow Thunder + Electric',items:'Thunder Jacket Electric Glow',price:599,emoji:'THUNDER',color:'#FFFF00',c3:0xFFFF00},{id:'b7',name:'DARK REAPER BUNDLE',desc:'Black + Skull - Darawna Look',items:'Dark Jacket Skull Mask',price:799,emoji:'DARK',color:'#888',c3:0x222222},{id:'b8',name:'GALAXY BUNDLE',desc:'Galaxy Print + Stars',items:'Galaxy Jacket Star Glow',price:899,emoji:'GALAXY',color:'#FF6AFF',c3:0xFF6AFF},{id:'b9',name:'SUPER HERO BUNDLE',desc:'Hero Cape + Hero Mask',items:'Hero Cape Hero Mask',price:799,emoji:'HERO',color:'#00FF00',c3:0x00FF00},{id:'b10',name:'DRAGON BUNDLE',desc:'Dragon Print + Fire Wings',items:'Dragon Jacket Fire Wings',price:999,emoji:'DRAGON',color:'#FF0000',c3:0xFF0000}];
+let ownedBundles={},equippedBundle='b1';
+let GUNS=[
+{id:'ak47',name:'AK47',cat:'ar',emoji:'GUN',dmg:35,range:45,speed:7,price:800,desc:'AR - Auto - Fast Fire - 35 Damage'},
+{id:'ump',name:'UMP',cat:'smg',emoji:'GUN',dmg:30,range:38,speed:8,price:650,desc:'SMG - Stable - 30 Damage'},
+{id:'mp40',name:'MP40',cat:'smg',emoji:'GUN',dmg:32,range:36,speed:9,price:750,desc:'SMG - Fast + Stable - 32 Damage'},
+{id:'p90',name:'P90',cat:'smg',emoji:'GUN',dmg:28,range:40,speed:10,price:700,desc:'SMG - Super Fast - 28 Damage'},
+{id:'m1887',name:'M1887 SHOTGUN',cat:'shotgun',emoji:'SHOTGUN',dmg:90,range:22,speed:3,price:1000,desc:'SHOTGUN - Close Range - 90 Damage'},
+{id:'awm',name:'AWM SNIPER',cat:'sniper',emoji:'SNIPER',dmg:120,range:70,speed:2.5,price:1200,desc:'SNIPER - One Shot - 120 Damage - Long Range'}
+];
+let ownedGuns={},currentGun=null,gunMode=false,bullets3D=[],lastShot=0;
+let ammo=30,MAX_AMMO=30,isReloading=false,reloadTimer=null;
+function updateAmmoHud(){
+  let a=document.getElementById('ammoText');
+  let s=document.getElementById('ammoSub');
+  let rb=document.getElementById('reloadBtn');
+  if(!a)return;
+  if(!gunMode||!currentGun){a.innerText='-- / --';if(s)s.innerText='KATANA MODE';if(rb){rb.classList.remove('need-reload','reloading');rb.innerHTML='<span>🔄</span><span>RELOAD</span>';}return;}
+  let g=GUNS.find(x=>x.id===currentGun);
+  let gName=g?g.name:'GUN';
+  if(isReloading){a.innerText='RELOADING...';if(s)s.innerText=gName+' • WAIT...';if(rb){rb.classList.add('reloading');rb.classList.remove('need-reload');rb.innerHTML='<span>⏳</span><span>WAIT...</span>';}}
+  else if(ammo<=0){a.innerText='0 / '+MAX_AMMO;if(s)s.innerText=gName+' • RELOAD KARO!';if(rb){rb.classList.add('need-reload');rb.classList.remove('reloading');rb.innerHTML='<span>🔄</span><span>RELOAD!</span>';}}
+  else{a.innerText=ammo+' / '+MAX_AMMO;if(s)s.innerText=gName+' • RELOAD READY';if(rb){rb.classList.remove('need-reload','reloading');rb.innerHTML='<span>🔄</span><span>RELOAD</span>';}}
+}
+function doReload(){
+  if(!gunMode||!currentGun)return;
+  if(isReloading)return;
+  if(ammo>=MAX_AMMO)return;
+  isReloading=true;
+  updateAmmoHud();
+  if(reloadTimer)clearTimeout(reloadTimer);
+  reloadTimer=setTimeout(()=>{ammo=MAX_AMMO;isReloading=false;updateAmmoHud();},1500);
+}
+let KATANAS=[{id:'katana',name:'NORMAL KATANA',dmg:40,price:0,desc:'Normal - Kuch Nahi Girega',color:'#FFFFFF'},{id:'cosmic',name:'COSMIC KATANA',dmg:80,price:900,desc:'BLUE + BARAF Giregi - Ice Effect',color:'#00e5ff'},{id:'golden',name:'GOLDEN KATANA',dmg:75,price:800,desc:'GOLDEN Animation Girega',color:'#FFD700'},{id:'fire',name:'FIRE KATANA',dmg:100,price:1000,desc:'Fire - 100 Damage',color:'#FF3300'},{id:'red',name:'RED KATANA',dmg:40,price:500,desc:'Red - 40 Damage',color:'#FF0000'},{id:'blue',name:'BLUE KATANA',dmg:40,price:500,desc:'Blue - 40 Damage',color:'#0066FF'}];
+let ownedKatanas={katana:true};
+let weaponsTab='katana';
+let swordFxTimer=null;
+let isCrouching=false,isProne=false,isJumping=false,jumpY=0,jumpVel=0,freeLookOn=false,freeLookYaw=0,isCustomizing=false;
+let CUSTOM_DEFAULT={joy:{left:'20px',top:'',bottom:'20px',right:''},joyRun:{left:'20px',top:'',bottom:'165px',right:''},fireBtn:{left:'',top:'',bottom:'25px',right:'22px'},reloadBtn:{left:'',top:'',bottom:'130px',right:'130px'},gunBtn:{left:'',top:'',bottom:'125px',right:'30px'},jumpBtn:{left:'',top:'',bottom:'210px',right:'20px'},crouchBtn:{left:'',top:'',bottom:'210px',right:'102px'},proneBtn:{left:'',top:'',bottom:'210px',right:'178px'},freelookBtn:{left:'',top:'',bottom:'300px',right:'20px'}};
+function gunDiagramHTML(g){
+let s='';
+if(g.id==='ak47'){s='<div class="gun-diagram"><div style="width:72px;height:12px;background:#222;border:2px solid #FFD700;border-radius:3px;position:relative"><div style="position:absolute;right:-22px;top:3px;width:22px;height:5px;background:#888"></div><div style="position:absolute;left:6px;top:-7px;width:18px;height:7px;background:#111;border:1px solid #888"></div></div><div style="width:16px;height:20px;background:#FF6A00;border:2px solid #FFD700;border-radius:0 0 10px 10px;transform:rotate(15deg);margin-top:-2px"></div><div style="width:10px;height:12px;background:#5a3a00;margin-top:-2px"></div><div class="g-name">AK47</div></div>';}
+else if(g.id==='mp40'){s='<div class="gun-diagram"><div style="width:48px;height:13px;background:#111;border:2px solid #00FF00;border-radius:4px;position:relative"><div style="position:absolute;right:-12px;top:4px;width:12px;height:4px;background:#888"></div></div><div style="width:8px;height:18px;background:#333;border:1px solid #888;margin-top:-1px"></div><div style="width:16px;height:8px;background:#5a3a00;margin-top:-1px"></div><div class="g-name">MP40</div></div>';}
+else if(g.id==='m1887'){s='<div class="gun-diagram"><div style="width:60px;height:8px;background:#6b3a00;border:2px solid #FFD700;border-radius:4px;position:relative"><div style="position:absolute;right:-26px;top:0;width:26px;height:8px;background:#8B6500;border:2px solid #FFD700;border-left:none"></div></div><div style="width:56px;height:6px;background:#333;margin-top:3px"></div><div style="width:12px;height:14px;background:#5a3a00;margin-top:-1px"></div><div class="g-name">M1887</div></div>';}
+else if(g.id==='awm'){s='<div class="gun-diagram"><div style="width:22px;height:8px;background:#000;border:2px solid #00e5ff;border-radius:6px;margin-bottom:1px"></div><div style="width:78px;height:7px;background:#111;border:2px solid #00e5ff;border-radius:2px;position:relative"><div style="position:absolute;right:-14px;top:1px;width:14px;height:4px;background:#888"></div></div><div style="width:8px;height:20px;background:#333;border:1px solid #888;margin-top:-1px"></div><div style="width:20px;height:10px;background:#002a44;margin-top:-2px"></div><div class="g-name">AWM</div></div>';}
+else if(g.id==='ump'){s='<div class="gun-diagram"><div style="width:58px;height:11px;background:#222;border:2px solid #aaa;border-radius:3px;position:relative"><div style="position:absolute;right:-16px;top:3px;width:16px;height:4px;background:#888"></div></div><div style="width:10px;height:16px;background:#111;border:1px solid #aaa;margin-top:-1px"></div><div style="width:14px;height:8px;background:#5a3a00;margin-top:-1px"></div><div class="g-name">UMP</div></div>';}
+else if(g.id==='p90'){s='<div class="gun-diagram"><div style="width:62px;height:16px;background:#00e5ff;border:2px solid #fff;border-radius:10px 4px 4px 10px;position:relative"><div style="position:absolute;right:-10px;top:5px;width:10px;height:5px;background:#888"></div><div style="position:absolute;left:10px;top:-6px;width:20px;height:6px;background:#111;border:1px solid #fff"></div></div><div style="width:10px;height:10px;background:#333;margin-top:-1px"></div><div class="g-name">P90</div></div>';}
+else{s='<div class="gun-diagram"><div style="width:60px;height:10px;background:#222;border:2px solid #00FF00"></div><div class="g-name">'+g.name+'</div></div>';}
+return s;}
+function katanaDiagramHTML(k){let col=k.color||'#fff';return '<div class="gun-diagram" style="border-color:'+col+'"><div style="font-size:42px;color:'+col+';text-shadow:0 0 12px '+col+'">🗡️</div><div class="g-name" style="color:'+col+'">'+k.name+'</div></div>';}
+/* ===== FINAL FIX - PURANA CHANGE HATA DIYA, SIRF YE HAI ===== */
+function isLandscapeNow(){
+  if(window.screen && window.screen.orientation && window.screen.orientation.type){
+    let t=window.screen.orientation.type;
+    if(t.indexOf('landscape')>=0) return true;
+    if(t.indexOf('portrait')>=0) return false;
+  }
+  return window.innerWidth > window.innerHeight;
+}
+let cosmicAutoDone=false;
+function checkRotate(){
+  if(!isLandscapeNow()) return false;
+  let s1=document.getElementById('screen1');
+  if(s1 && s1.style.display!=='none' && !cosmicAutoDone){
+    cosmicAutoDone = true;
+    let rw = document.getElementById('rotateWait');
+    if (rw) rw.style.display = 'block';
+    setTimeout(goNextReal, 6000);
+    return true;
+  }
+  return true;
+}
+window.addEventListener('resize',checkRotate);
+window.addEventListener('orientationchange',function(){ setTimeout(checkRotate,200); setTimeout(checkRotate,600); setTimeout(checkRotate,1000); });
+document.addEventListener('visibilitychange',function(){ if(!document.hidden) setTimeout(checkRotate,300); });
+setInterval(checkRotate,800);
+document.addEventListener('touchstart',function(){ setTimeout(checkRotate,300); },{passive:true});
+document.addEventListener('click',function(){ setTimeout(checkRotate,200); });
+window.addEventListener('load',function(){ setTimeout(checkRotate,100); setTimeout(checkRotate,500); });
+setTimeout(checkRotate,50);
+setTimeout(checkRotate,300);
+async function autoFull(){try{let el=document.documentElement;if(!document.fullscreenElement){if(el.requestFullscreen)await el.requestFullscreen({navigationUI:"hide"}).catch(()=>{})}}catch(e){}try{if(screen.orientation&&screen.orientation.lock)await screen.orientation.lock('landscape').catch(()=>{})}catch(e){}}
+setTimeout(autoFull,300);setTimeout(autoFull,1000);
+document.addEventListener('touchstart',autoFull,{passive:true});document.addEventListener('click',autoFull);
+let lobbyScene=null,lobbyCam=null,lobbyRen=null,lobbyChar=null,lobbyCharBody=null,lobbyHead=null,lobbyArmL=null,lobbyArmR=null,lobbyLegL=null,lobbyLegR=null,lobbyRot=0,lobbyTargetRot=0,lobbyBreathe=0,lobbyDragId=null,lobbyLastX=0,lobbyMoved=0,lobbyDownTime=0;
+let lobbyGun=null,lobbyGunBody=null,lobbyGunId='';
+let lobbyKatana=null,lobbyKatanaBlade=null,lobbyKatanaId='';
+let lobbyForeArmL=null,lobbyForeArmR=null,lobbyHandL=null,lobbyHandR=null;
+function initLobby3D(){try{if(lobbyRen)return;let cv=document.getElementById('lobby3D');if(!cv||!window.THREE)return;lobbyScene=new THREE.Scene();lobbyCam=new THREE.PerspectiveCamera(45,340/420,0.1,100);lobbyCam.position.set(0,1.35,11.2);lobbyRen=new THREE.WebGLRenderer({canvas:cv,antialias:true,alpha:true});lobbyRen.setSize(340,420);lobbyRen.setPixelRatio(Math.min(window.devicePixelRatio,2));lobbyRen.setClearColor(0x000000,0);lobbyScene.add(new THREE.AmbientLight(0xffffff,0.95));let dl=new THREE.DirectionalLight(0xffffff,1.1);dl.position.set(2,4,3);lobbyScene.add(dl);let dl2=new THREE.DirectionalLight(0x88ccff,0.5);dl2.position.set(-2,2,-2);lobbyScene.add(dl2);
+lobbyChar=new THREE.Group();
+lobbyChar.position.set(0,-1.35,-2.90);
+lobbyChar.scale.set(1.35,1.35,1.35);
+let bodyMat=new THREE.MeshLambertMaterial({color:0x111111});lobbyCharBody=new THREE.Mesh(new THREE.BoxGeometry(1,1.35,0.55),bodyMat);lobbyCharBody.position.y=0.85;
+let gold=new THREE.Mesh(new THREE.BoxGeometry(1.02,0.13,0.57),new THREE.MeshLambertMaterial({color:0xFFD700}));gold.position.y=0.82;
+let pocket=new THREE.Mesh(new THREE.BoxGeometry(0.28,0.28,0.05),new THREE.MeshLambertMaterial({color:0x001a44}));pocket.position.set(-0.28,1.05,0.29);
+let pocket2=pocket.clone();pocket2.position.x=0.28;
+window.lobbyNeck=new THREE.Mesh(new THREE.CylinderGeometry(0.14,0.16,0.28,12),new THREE.MeshLambertMaterial({color:0xe8a06a}));window.lobbyNeck.position.y=1.68;
+window.lobbyHeadGroup=new THREE.Group();window.lobbyHeadGroup.position.y=1.82;
+lobbyHead=new THREE.Mesh(new THREE.BoxGeometry(0.72,0.68,0.62),new THREE.MeshLambertMaterial({color:0xffc79a}));lobbyHead.position.y=0.34;
+let earL=new THREE.Mesh(new THREE.BoxGeometry(0.1,0.18,0.14),new THREE.MeshLambertMaterial({color:0xffc79a}));earL.position.set(-0.4,0.34,0);
+let earR=earL.clone();earR.position.x=0.4;
+let hair=new THREE.Mesh(new THREE.BoxGeometry(0.76,0.22,0.66),new THREE.MeshLambertMaterial({color:0x111111}));hair.position.y=0.62;
+let hairBack=new THREE.Mesh(new THREE.BoxGeometry(0.76,0.5,0.1),new THREE.MeshLambertMaterial({color:0x111111}));hairBack.position.set(0,0.35,-0.32);
+let browL=new THREE.Mesh(new THREE.BoxGeometry(0.16,0.04,0.03),new THREE.MeshLambertMaterial({color:0x111111}));browL.position.set(-0.17,0.48,0.32);
+let browR=browL.clone();browR.position.x=0.17;
+let eyeWL=new THREE.Mesh(new THREE.SphereGeometry(0.07,10,10),new THREE.MeshLambertMaterial({color:0xffffff}));eyeWL.position.set(-0.17,0.38,0.31);eyeWL.scale.z=0.4;
+let eyeWR=eyeWL.clone();eyeWR.position.x=0.17;
+let eyeBL=new THREE.Mesh(new THREE.SphereGeometry(0.035,10,10),new THREE.MeshLambertMaterial({color:0x000000}));eyeBL.position.set(-0.17,0.38,0.36);
+let eyeBR=eyeBL.clone();eyeBR.position.x=0.17;
+let nose=new THREE.Mesh(new THREE.BoxGeometry(0.07,0.12,0.08),new THREE.MeshLambertMaterial({color:0xe8a06a}));nose.position.set(0,0.26,0.33);
+let mouth=new THREE.Mesh(new THREE.BoxGeometry(0.2,0.05,0.03),new THREE.MeshLambertMaterial({color:0xaa3344}));mouth.position.set(0,0.1,0.32);
+window.lobbyMouth=mouth;
+let cheekL=new THREE.Mesh(new THREE.SphereGeometry(0.06,8,8),new THREE.MeshLambertMaterial({color:0xff9999}));cheekL.position.set(-0.26,0.2,0.28);
+let cheekR=cheekL.clone();cheekR.position.x=0.26;
+window.lobbyHeadGroup.add(lobbyHead,earL,earR,hair,hairBack,browL,browR,eyeWL,eyeWR,eyeBL,eyeBR,nose,mouth,cheekL,cheekR);
+let skinMat=new THREE.MeshLambertMaterial({color:0xffc79a});
+let jointMat=new THREE.MeshLambertMaterial({color:0xe8a06a});
+lobbyArmL=new THREE.Group(); lobbyArmL.position.set(-0.58,1.55,0);
+let upperArmL=new THREE.Mesh(new THREE.BoxGeometry(0.22,0.55,0.22),skinMat); upperArmL.position.y=-0.25;
+let elbowL=new THREE.Mesh(new THREE.SphereGeometry(0.15,10,10),jointMat); elbowL.position.y=-0.55;
+let foreArmL=new THREE.Group(); foreArmL.position.y=-0.55; lobbyForeArmL=foreArmL;
+let foreArmMeshL=new THREE.Mesh(new THREE.BoxGeometry(0.20,0.50,0.20),skinMat); foreArmMeshL.position.y=-0.25;
+let wristL=new THREE.Mesh(new THREE.SphereGeometry(0.13,10,10),jointMat); wristL.position.y=-0.52;
+let handLGroup=new THREE.Group(); handLGroup.position.y=-0.62; lobbyHandL=handLGroup;
+let palmL=new THREE.Mesh(new THREE.SphereGeometry(0.19,12,12),skinMat); palmL.position.y=-0.08; palmL.scale.set(1,1,1.3);
+let fistL=new THREE.Mesh(new THREE.BoxGeometry(0.24,0.24,0.24),new THREE.MeshLambertMaterial({color:0xffffff})); fistL.position.set(0,-0.08,0);
+handLGroup.add(palmL,fistL);
+foreArmL.add(foreArmMeshL,wristL,handLGroup);
+lobbyArmL.add(upperArmL,elbowL,foreArmL);
+lobbyArmR=new THREE.Group(); lobbyArmR.position.set(0.68,1.55,0);
+let upperArmR=new THREE.Mesh(new THREE.BoxGeometry(0.22,0.55,0.22),skinMat); upperArmR.position.y=-0.25;
+let elbowR=new THREE.Mesh(new THREE.SphereGeometry(0.15,10,10),jointMat); elbowR.position.y=-0.55;
+let foreArmR=new THREE.Group(); foreArmR.position.y=-0.55; lobbyForeArmR=foreArmR;
+let foreArmMeshR=new THREE.Mesh(new THREE.BoxGeometry(0.20,0.50,0.20),skinMat); foreArmMeshR.position.y=-0.25;
+let wristR=new THREE.Mesh(new THREE.SphereGeometry(0.13,10,10),jointMat); wristR.position.y=-0.52;
+let handRGroup=new THREE.Group(); handRGroup.position.y=-0.60; lobbyHandR=handRGroup;
+let palmR=new THREE.Mesh(new THREE.SphereGeometry(0.17,12,12),skinMat); palmR.position.y=-0.08;
+let fistR=new THREE.Mesh(new THREE.BoxGeometry(0.22,0.22,0.22),new THREE.MeshLambertMaterial({color:0xffffff})); fistR.position.set(0,-0.08,0);
+handRGroup.add(palmR,fistR);
+foreArmR.add(foreArmMeshR,wristR,handRGroup);
+lobbyArmR.add(upperArmR,elbowR,foreArmR);
+lobbyGun=new THREE.Group(); lobbyGun.position.set(0.02,0.95,0.58); lobbyGun.rotation.y=Math.PI/2-0.45; lobbyGun.visible=false;
+lobbyChar.add(lobbyGun);
+lobbyKatana=new THREE.Group();
+lobbyKatana.position.set(0,-0.08,0);
+lobbyKatana.rotation.set(2.09,0,0);
+lobbyKatana.visible=false;
+handLGroup.add(lobbyKatana);
+window.lobbyHandRGroup=handRGroup;
+lobbyArmL.rotation.set(0,0,0);
+lobbyForeArmL.rotation.set(0,0,0);
+lobbyHandL.rotation.set(0,0,0);
+lobbyArmR.rotation.set(0,0,0);
+lobbyForeArmR.rotation.set(0,0,0);
+lobbyHandR.rotation.set(0,0,0);
+lobbyLegL=new THREE.Group(); lobbyLegL.position.set(-0.22,0.30,0);
+let thighL=new THREE.Mesh(new THREE.BoxGeometry(0.30,0.45,0.30),new THREE.MeshLambertMaterial({color:0xFFFFFF})); thighL.position.y=-0.20;
+let kneeL=new THREE.Mesh(new THREE.SphereGeometry(0.16,10,10),jointMat); kneeL.position.y=-0.45;
+let shinL=new THREE.Group(); shinL.position.y=-0.45;
+let shinMeshL=new THREE.Mesh(new THREE.BoxGeometry(0.28,0.45,0.28),new THREE.MeshLambertMaterial({color:0xFFFFFF})); shinMeshL.position.y=-0.22;
+let ankleL=new THREE.Mesh(new THREE.SphereGeometry(0.13,10,10),jointMat); ankleL.position.y=-0.46;
+let footL=new THREE.Group(); footL.position.y=-0.52;
+let footMeshL=new THREE.Mesh(new THREE.BoxGeometry(0.30,0.10,0.48),skinMat); footMeshL.position.set(0,-0.02,0.10);
+footL.add(footMeshL);
+for(let i=0;i<5;i++){let toe=new THREE.Mesh(new THREE.BoxGeometry(0.045,0.05,0.12),skinMat); toe.position.set(-0.10+i*0.05,-0.02,0.38); footL.add(toe);}
+shinL.add(shinMeshL,ankleL,footL);
+lobbyLegL.add(thighL,kneeL,shinL);
+lobbyLegR=new THREE.Group(); lobbyLegR.position.set(0.22,0.30,0);
+let thighR=new THREE.Mesh(new THREE.BoxGeometry(0.30,0.45,0.30),new THREE.MeshLambertMaterial({color:0xFFFFFF})); thighR.position.y=-0.20;
+let kneeR=new THREE.Mesh(new THREE.SphereGeometry(0.16,10,10),jointMat); kneeR.position.y=-0.45;
+let shinR=new THREE.Group(); shinR.position.y=-0.45;
+let shinMeshR=new THREE.Mesh(new THREE.BoxGeometry(0.28,0.45,0.28),new THREE.MeshLambertMaterial({color:0xFFFFFF})); shinMeshR.position.y=-0.22;
+let ankleR=new THREE.Mesh(new THREE.SphereGeometry(0.13,10,10),jointMat); ankleR.position.y=-0.46;
+let footR=new THREE.Group(); footR.position.y=-0.52;
+let footMeshR=new THREE.Mesh(new THREE.BoxGeometry(0.30,0.10,0.48),skinMat); footMeshR.position.set(0,-0.02,0.10);
+footR.add(footMeshR);
+for(let i=0;i<5;i++){let toe=new THREE.Mesh(new THREE.BoxGeometry(0.045,0.05,0.12),skinMat); toe.position.set(-0.10+i*0.05,-0.02,0.38); footR.add(toe);}
+shinR.add(shinMeshR,ankleR,footR);
+lobbyLegR.add(thighR,kneeR,shinR);
+lobbyChar.add(lobbyCharBody,gold,pocket,pocket2,window.lobbyNeck,window.lobbyHeadGroup,lobbyArmL,lobbyArmR,lobbyLegL,lobbyLegR);lobbyScene.add(lobbyChar);
+(function lobbyLoop(){requestAnimationFrame(lobbyLoop);if(!lobbyRen)return;lobbyBreathe+=0.03;lobbyChar.position.y=-1.35+Math.sin(lobbyBreathe)*0.04;lobbyChar.position.x=0;lobbyChar.position.z=-2.90;lobbyCharBody.scale.x=1+Math.sin(lobbyBreathe)*0.01;
+if(window.lobbyHeadGroup){window.lobbyHeadGroup.rotation.y=0;window.lobbyHeadGroup.rotation.x=0;window.lobbyHeadGroup.rotation.z=0;}
+if(window.lobbyNeck){window.lobbyNeck.rotation.y=0;window.lobbyNeck.rotation.x=0;window.lobbyNeck.rotation.z=0;}
+let isEmoting=!!(currentEmote&&emoteTimer>0);
+if(isEmoting){
+  if(lobbyGun)lobbyGun.visible=false;
+  if(lobbyKatana)lobbyKatana.visible=false;
+}else{
+  if(lobbyGun)lobbyGun.visible=!!(gunMode&&currentGun);
+  if(lobbyKatana)lobbyKatana.visible=!(gunMode&&currentGun) && !!currentSkin && currentSkin!=='none' && currentSkin!=='';
+}
+if(currentEmote&&emoteTimer>0){emoteTimer--;if(emoteTimer<=0)currentEmote=null;if(currentEmote==='dance'){
+  lobbyChar.position.y=-1.35+Math.abs(Math.sin(lobbyBreathe*4))*0.22;lobbyChar.rotation.z=Math.sin(lobbyBreathe*4)*0.18;
+  lobbyArmL.rotation.set(-2.6,0,-0.6);lobbyArmR.rotation.set(-2.6,0,0.6);
+  if(lobbyForeArmL)lobbyForeArmL.rotation.set(-0.4,0,0.3);if(lobbyForeArmR)lobbyForeArmR.rotation.set(-0.4,0,-0.3);
+  if(window.lobbyMouth)window.lobbyMouth.scale.y=1.6;
+}else if(currentEmote==='clap'){
+  let clapPhase=Math.abs(Math.sin(lobbyBreathe*8));
+  let meet=clapPhase*0.28;
+  lobbyArmL.rotation.set(-1.45,0,-0.28+meet);lobbyArmR.rotation.set(-1.45,0,0.28-meet);
+  if(lobbyForeArmL)lobbyForeArmL.rotation.set(-0.20,0,0.10-meet*0.5);if(lobbyForeArmR)lobbyForeArmR.rotation.set(-0.20,0,-0.10+meet*0.5);
+  lobbyChar.position.y=-1.35; lobbyChar.rotation.z=0;
+  if(window.lobbyMouth)window.lobbyMouth.scale.y=1;
+}}else{lobbyChar.rotation.z*=0.9;if(window.lobbyMouth)window.lobbyMouth.scale.y=1;
+let gunHold=!!(gunMode&&currentGun);
+let hasKatana=!gunHold && !!currentSkin && currentSkin!=='none' && currentSkin!=='';
+let hasNothing=!gunHold && !hasKatana;
+let tLx,tLz,tRx,tRz,tFLx,tFLz,tFRx,tFRz,tHLx,tHLz,tHRx,tHRz;
+if(hasNothing){tLx=0;tLz=0;tRx=0;tRz=0;tFLx=0;tFLz=0;tFRx=0;tFRz=0;tHLx=0;tHLz=0;tHRx=0;tHRz=0;}
+else if(gunHold){tLx=-0.45;tLz=-0.45;tRx=-0.20;tRz=-0.05;tFLx=-1.05;tFLz=0.95;tFRx=-1.57;tFRz=0.10;tHLx=0;tHLz=0;tHRx=0;tHRz=0;}
+else{tLx=-0.65;tLz=-0.75;tRx=0;tRz=0;tFLx=-1.05;tFLz=0.95;tFRx=0;tFRz=0;tHLx=0;tHLz=0;tHRx=0;tHRz=0;}
+lobbyArmL.rotation.x+=(tLx-lobbyArmL.rotation.x)*0.2; lobbyArmL.rotation.z+=(tLz-lobbyArmL.rotation.z)*0.2;
+lobbyArmR.rotation.x+=(tRx-lobbyArmR.rotation.x)*0.2; lobbyArmR.rotation.z+=(tRz-lobbyArmR.rotation.z)*0.2;
+if(lobbyForeArmL){lobbyForeArmL.rotation.x+=(tFLx-lobbyForeArmL.rotation.x)*0.2; lobbyForeArmL.rotation.z+=(tFLz-lobbyForeArmL.rotation.z)*0.2;}
+if(lobbyForeArmR){lobbyForeArmR.rotation.x+=(tFRx-lobbyForeArmR.rotation.x)*0.2; lobbyForeArmR.rotation.z+=(tFRz-lobbyForeArmR.rotation.z)*0.2;}
+if(lobbyHandL){lobbyHandL.rotation.x+=(tHLx-lobbyHandL.rotation.x)*0.2; lobbyHandL.rotation.z+=(tHLz-lobbyHandL.rotation.z)*0.2;}
+if(lobbyHandR){lobbyHandR.rotation.x+=(tHRx-lobbyHandR.rotation.x)*0.2; lobbyHandR.rotation.z+=(tHRz-lobbyHandR.rotation.z)*0.2;}
+}
+lobbyRot+=(lobbyTargetRot-lobbyRot)*0.15;lobbyChar.rotation.y=lobbyRot;lobbyRen.render(lobbyScene,lobbyCam);})();}catch(e){}}
+function buildLobbyGun(id){if(!lobbyGun)return;if(lobbyGunId===id&&lobbyGun.children.length>0)return;lobbyGunId=id;while(lobbyGun.children.length>0){lobbyGun.remove(lobbyGun.children[0]);}
+let dark=new THREE.MeshLambertMaterial({color:0x222222});let grey=new THREE.MeshLambertMaterial({color:0x888888});let wood=new THREE.MeshLambertMaterial({color:0x6b3a00});let black=new THREE.MeshLambertMaterial({color:0x111111});let blue=new THREE.MeshLambertMaterial({color:0x00e5ff});
+function bx(w,h,d,mat,x,y,z){let m=new THREE.Mesh(new THREE.BoxGeometry(w,h,d),mat);m.position.set(x,y,z);lobbyGun.add(m);return m;}
+if(id==='awm'){bx(0.16,0.20,1.6,dark,0,0,0);bx(0.07,0.07,0.7,grey,0,0.03,1.05);bx(0.14,0.16,0.35,black,0,0,-0.9);bx(0.09,0.30,0.13,black,0,-0.25,0.1);bx(0.10,0.25,0.12,black,0,-0.20,-0.2);bx(0.08,0.08,0.35,black,0,0.18,0.1);bx(0.05,0.05,0.12,black,0,0.18,0.28);lobbyGunBody=lobbyGun.children[0];}
+else if(id==='m1887'){bx(0.18,0.20,1.15,wood,0,0,0);bx(0.08,0.08,0.65,grey,0,0.03,0.85);bx(0.16,0.16,0.35,wood,0,0,-0.7);bx(0.10,0.28,0.12,black,0,-0.22,-0.1);bx(0.14,0.10,0.55,black,0,-0.05,0.35);lobbyGunBody=lobbyGun.children[0];}
+else if(id==='p90'){bx(0.22,0.28,0.85,blue,0,0,0);bx(0.07,0.07,0.35,grey,0,0.03,0.6);bx(0.16,0.20,0.25,black,0,0,-0.5);bx(0.10,0.25,0.12,black,0,-0.22,-0.1);bx(0.12,0.08,0.30,black,0,0.18,0);lobbyGunBody=lobbyGun.children[0];}
+else if(id==='mp40'){bx(0.15,0.20,0.85,dark,0,0,0);bx(0.07,0.07,0.40,grey,0,0.03,0.6);bx(0.13,0.16,0.28,black,0,0,-0.55);bx(0.08,0.28,0.11,black,0,-0.25,0.05);bx(0.10,0.25,0.11,black,0,-0.20,-0.15);lobbyGunBody=lobbyGun.children[0];}
+else if(id==='ump'){bx(0.16,0.20,0.95,dark,0,0,0);bx(0.07,0.07,0.45,grey,0,0.03,0.68);bx(0.14,0.16,0.30,black,0,0,-0.6);bx(0.09,0.30,0.12,black,0,-0.26,0.1);bx(0.10,0.25,0.12,black,0,-0.20,-0.15);lobbyGunBody=lobbyGun.children[0];}
+else{bx(0.18,0.22,1.35,dark,0,0,0);bx(0.08,0.08,0.55,grey,0,0.03,0.9);bx(0.09,0.35,0.14,black,0,-0.28,0.15);bx(0.14,0.18,0.30,wood,0,0,-0.75);bx(0.10,0.28,0.12,black,0,-0.22,-0.15);lobbyGunBody=lobbyGun.children[0];}}
+function buildLobbyKatana(skin){
+  if(!lobbyKatana)return;
+  if(lobbyKatanaId===skin&&lobbyKatana.children.length>0)return;
+  lobbyKatanaId=skin;
+  while(lobbyKatana.children.length>0){lobbyKatana.remove(lobbyKatana.children[0]);}
+  let cfg={cosmic:0x00e5ff,golden:0xFFD700,fire:0xFF3300,red:0xFF0000,blue:0x0066FF,katana:0xFFFFFF}[skin]||0xFFFFFF;
+  let bladeMat=new THREE.MeshLambertMaterial({color:cfg,emissive:cfg,emissiveIntensity:0.7});
+  let handle=new THREE.Mesh(new THREE.BoxGeometry(0.09,0.42,0.09),new THREE.MeshLambertMaterial({color:0x5a3a00}));
+  handle.position.set(0,-0.08,0);
+  let guard=new THREE.Mesh(new THREE.BoxGeometry(0.28,0.08,0.12),new THREE.MeshLambertMaterial({color:0xFFD700}));
+  guard.position.set(0,0.14,0);
+  let blade=new THREE.Mesh(new THREE.BoxGeometry(0.10,1.65,0.06),bladeMat);
+  blade.position.set(0,1.0,0); blade.rotation.z=-0.15;
+  let tip=new THREE.Mesh(new THREE.BoxGeometry(0.10,0.18,0.06),bladeMat);
+  tip.position.set(0.12,1.87,0); tip.rotation.z=-0.6;
+  lobbyKatana.add(handle,guard,blade,tip);
+  lobbyKatanaBlade=blade;
+}
+function updateLobbyGun(){
+  if(lobbyGun)lobbyGun.visible=!!(gunMode&&currentGun);
+  if(lobbyGun&&gunMode&&currentGun)buildLobbyGun(currentGun);
+  if(lobbyKatana){
+    let isEmoting=!!(currentEmote&&emoteTimer>0);
+    lobbyKatana.visible=!isEmoting&&!(gunMode&&currentGun) && !!currentSkin && currentSkin!=='none' && currentSkin!=='';
+    if(lobbyKatana.visible)buildLobbyKatana(currentSkin||'katana');
+  }
+}
+function updateLobbyBundle(){updateLobbyGun();if(!lobbyCharBody)return;let hasBundle=bundleEquipped&&ownedBundles[equippedBundle];if(hasBundle){let b=BUNDLES.find(x=>x.id===equippedBundle);if(b){lobbyCharBody.material.color.setHex(b.c3);}if(lobbyLegL)lobbyLegL.traverse(o=>{if(o.material)o.material.color.setHex(0x111111)});if(lobbyLegR)lobbyLegR.traverse(o=>{if(o.material)o.material.color.setHex(0x111111)});}else{lobbyCharBody.material.color.setHex(0x111111);if(lobbyLegL)lobbyLegL.traverse(o=>{if(o.material)o.material.color.setHex(0xFFFFFF)});if(lobbyLegR)lobbyLegR.traverse(o=>{if(o.material)o.material.color.setHex(0xFFFFFF)});}}
+function onCharTap(e){refreshEmoteWheel();document.getElementById('emoteWheel').classList.toggle('show');}
+function setupLobbyDrag(){let w=document.getElementById('charWrap');if(!w)return;w.addEventListener('touchstart',function(e){let t=e.changedTouches[0];lobbyDragId=t.identifier;lobbyLastX=t.clientX;lobbyMoved=0;lobbyDownTime=Date.now();},{passive:true});w.addEventListener('touchmove',function(e){for(let i=0;i<e.changedTouches.length;i++){let t=e.changedTouches[i];if(t.identifier===lobbyDragId){let dx=t.clientX-lobbyLastX;lobbyLastX=t.clientX;lobbyMoved+=Math.abs(dx);lobbyTargetRot+=dx*0.012;}}},{passive:true});w.addEventListener('touchend',function(e){for(let i=0;i<e.changedTouches.length;i++){if(e.changedTouches[i].identifier===lobbyDragId){lobbyDragId=null;if(lobbyMoved<8&&Date.now()-lobbyDownTime<300){onCharTap(e);}}}});w.addEventListener('mousedown',function(e){lobbyDragId='mouse';lobbyLastX=e.clientX;lobbyMoved=0;lobbyDownTime=Date.now();});window.addEventListener('mousemove',function(e){if(lobbyDragId!=='mouse')return;let dx=e.clientX-lobbyLastX;lobbyLastX=e.clientX;lobbyMoved+=Math.abs(dx);lobbyTargetRot+=dx*0.012;});window.addEventListener('mouseup',function(){if(lobbyDragId==='mouse'){lobbyDragId=null;if(lobbyMoved<8&&Date.now()-lobbyDownTime<300)onCharTap();}});}
+setupLobbyDrag();initLobby3D();
+function showWeaponsTab(tab){
+  weaponsTab=tab;
+  ['katana','ar','smg','shotgun','sniper'].forEach(t=>{
+    let el=document.getElementById('tab-'+t);
+    if(el)el.classList.toggle('active',t===tab);
+  });
+  let isKatana=tab==='katana';
+  document.getElementById('weaponsKatanaView').style.display=isKatana?'block':'none';
+  document.getElementById('weaponsGunsView').style.display=!isKatana?'block':'none';
+  let label={katana:'KATANA - Sirf Kharidi Hui',ar:'AR - Sirf Kharidi Hui',smg:'SMG - Sirf Kharidi Hui',shotgun:'SHOTGUN - Sirf Kharidi Hui',sniper:'SNIPER - Sirf Kharidi Hui'}[tab]||'';
+  document.getElementById('weaponsTabLabel').innerText=label;
+  if(isKatana)renderWeaponsKatanaList();
+  else renderWeaponsGunsList(tab);
+}
+function renderWeaponsKatanaList(){
+  let box=document.getElementById('weaponsKatanaList');
+  if(!box)return;
+  let html='';
+  KATANAS.forEach(k=>{
+    if(!ownedKatanas[k.id])return;
+    let isCur=currentSkin===k.id;
+    html+='<div class="weapons-item"><div><b style="color:'+k.color+'">'+k.name+'</b><small>'+k.desc+' | Damage '+k.dmg+'</small></div><button style="background:'+(isCur?'#FFD700':'#00FF00')+';color:#000" onclick="event.stopPropagation();selectKatana(\''+k.id+'\')">'+(isCur?'EQUIPPED':'EQUIP')+'</button></div>';
+  });
+  box.innerHTML=html;
+}
+function renderWeaponsGunsList(cat){
+  let box=document.getElementById('weaponsGunsList');
+  if(!box)return;
+  cat=cat||weaponsTab;
+  let html='';
+  GUNS.forEach(g=>{
+    if(g.cat!==cat)return;
+    if(!ownedGuns[g.id])return;
+    let isCur=currentGun===g.id&&gunMode;
+    html+='<div class="weapons-item"><div><b style="color:#00FF00">'+g.name+'</b><small>'+g.desc+'</small></div><button style="background:'+(isCur?'#FFD700':'#00FF00')+';color:#000" onclick="event.stopPropagation();equipGun(\''+g.id+'\')">'+(isCur?'EQUIPPED':'EQUIP')+'</button></div>';
+  });
+  box.innerHTML=html;
+}
+function startSwordFx(s){
+  let fx=document.getElementById('swordFx');
+  if(!fx)return;
+  fx.innerHTML='';
+  if(swordFxTimer)clearInterval(swordFxTimer);
+  if(s==='cosmic'){
+    swordFxTimer=setInterval(()=>{
+      if(document.getElementById('weaponsBox').style.display!=='flex')return;
+      let d=document.createElement('div');
+      d.className='sword-fx ice';
+      d.style.left=(20+Math.random()*60)+'%';
+      fx.appendChild(d);
+      setTimeout(()=>d.remove(),1100);
+    },180);
+  }else if(s==='golden'){
+    swordFxTimer=setInterval(()=>{
+      if(document.getElementById('weaponsBox').style.display!=='flex')return;
+      let d=document.createElement('div');
+      d.className='sword-fx gold';
+      d.style.left=(20+Math.random()*60)+'%';
+      fx.appendChild(d);
+      setTimeout(()=>d.remove(),1100);
+    },180);
+  }
+}
+function renderBundles(){let box=document.getElementById('storeBundlesView');box.innerHTML='';BUNDLES.forEach(b=>{let owned=ownedBundles[b.id];let eq=equippedBundle===b.id&&owned;box.innerHTML+='<div class="bundle-card"><div class="bundle-top"><div class="bundle-dress" style="border-color:'+b.color+'"><div class="d-head"></div><div class="d-jacket" style="border-color:'+b.color+'"></div><div class="d-pant"><i></i><i></i></div></div><div class="bundle-info"><div class="bundle-name" style="color:'+b.color+'">'+b.name+'</div><div class="bundle-desc">'+b.desc+'</div><div class="bundle-items">'+b.items+'</div></div></div><div class="bundle-price-row"><div class="bundle-price">'+b.price+'</div><div style="display:flex;gap:6px">'+(owned?'<button class="bundle-equip '+(eq?'equipped':'')+'" onclick="event.stopPropagation();equipBundle(\''+b.id+'\')">'+(eq?'EQUIPPED':'EQUIP')+'</button>':'<button class="bundle-buy" onclick="event.stopPropagation();buyBundle2(\''+b.id+'\')">BUY '+b.price+'</button>')+'</div></div></div>'});}
+function renderGuns(){
+  let box=document.getElementById('storeGunsView');box.innerHTML='';
+  let order={ar:0,smg:1,shotgun:2,sniper:3};
+  let sorted=[...GUNS].sort((a,b)=>order[a.cat]-order[b.cat]);
+  let lastCat='';
+  sorted.forEach(g=>{
+    if(g.cat!==lastCat){lastCat=g.cat;let t={ar:'🔫 AR',smg:'🔫 SMG',shotgun:'💥 SHOTGUN',sniper:'🎯 SNIPER'}[g.cat];box.innerHTML+='<div style="width:100%;text-align:center;color:#FFD700;font-weight:900;margin-top:14px;font-size:13px">'+t+'</div>';}
+    let owned=ownedGuns[g.id];let eq=currentGun===g.id;box.innerHTML+='<div class="gun-card"><div class="bundle-top">'+gunDiagramHTML(g)+'<div class="bundle-info"><div class="bundle-name" style="color:#00FF00">'+g.name+'</div><div class="bundle-desc">'+g.desc+'</div><div class="bundle-items">Damage '+g.dmg+' Range '+g.range+' Speed '+g.speed+'</div></div></div><div class="bundle-price-row"><div class="bundle-price">'+g.price+'</div><div style="display:flex;gap:6px">'+(owned?'<button class="bundle-equip '+(eq?'equipped':'')+'" onclick="event.stopPropagation();equipGun(\''+g.id+'\')">'+(eq?'EQUIPPED':'EQUIP')+'</button>':'<button class="bundle-buy" style="background:linear-gradient(180deg,#00FF00,#00AA00);color:#000" onclick="event.stopPropagation();buyGun(\''+g.id+'\')">BUY '+g.price+'</button>')+'</div></div></div>';});
+  box.innerHTML+='<div style="width:100%;text-align:center;color:#FFD700;font-weight:900;margin-top:14px;font-size:13px">🗡️ KATANA - Yahan se Kharido, WEAPONS me Aayega</div>';
+  KATANAS.forEach(k=>{
+    if(k.id==='katana')return;
+    let owned=ownedKatanas[k.id];
+    let eq=currentSkin===k.id&&owned;
+    box.innerHTML+='<div class="gun-card" style="border-color:'+k.color+'"><div class="bundle-top">'+katanaDiagramHTML(k)+'<div class="bundle-info"><div class="bundle-name" style="color:'+k.color+'">'+k.name+'</div><div class="bundle-desc">'+k.desc+'</div><div class="bundle-items">Damage '+k.dmg+'</div></div></div><div class="bundle-price-row"><div class="bundle-price">'+k.price+'</div><div style="display:flex;gap:6px">'+(owned?'<button class="bundle-equip '+(eq?'equipped':'')+'" onclick="event.stopPropagation();selectKatana(\''+k.id+'\')">'+(eq?'EQUIPPED':'EQUIP')+'</button>':'<button class="bundle-buy" style="background:linear-gradient(180deg,'+k.color+',#000);color:#fff" onclick="event.stopPropagation();buyKatana(\''+k.id+'\')">BUY '+k.price+'</button>')+'</div></div></div>';
+  });
+}
+function buyBundle2(id){let b=BUNDLES.find(x=>x.id===id);if(ownedBundles[id])return;if(diamonds<b.price)return showRewardPopup('DIAMOND','DIAMOND KAM HAI!');diamonds-=b.price;if(!isFinite(diamonds))diamonds=Infinity;ownedBundles[id]=true;if(id==='b1'){bundleOwned=true;bundleEquipped=true;}equippedBundle=id;if(id==='b1'){let bb=document.getElementById('bundleBadge');if(bb)bb.style.display='block';}updateCurrency();renderBundles();refreshVault();updatePlayer3D();updateLobbyBundle();showRewardPopup(b.emoji,b.name+' PURCHASED!','bundle');}
+function equipBundle(id){if(!ownedBundles[id])return;equippedBundle=id;bundleEquipped=true;let bb=document.getElementById('bundleBadge');if(bb){bb.style.display='block';bb.innerText=BUNDLES.find(x=>x.id===id).name+' ON';}renderBundles();refreshVault();updatePlayer3D();updateLobbyBundle();showRewardPopup('BUNDLE',BUNDLES.find(x=>x.id===id).name+' EQUIPPED!','bundle');}
+function buyGun(id){let g=GUNS.find(x=>x.id===id);if(ownedGuns[id])return;if(diamonds<g.price)return showRewardPopup('DIAMOND','DIAMOND KAM HAI!');diamonds-=g.price;if(!isFinite(diamonds))diamonds=Infinity;ownedGuns[id]=true;currentGun=id;gunMode=true;ammo=MAX_AMMO;isReloading=false;updateAmmoHud();updateGunHud();updateCurrency();renderGuns();refreshVault();updatePlayer3D();updateLobbyBundle();updateLobbyGun();renderWeaponsGunsList(g.cat);showRewardPopup(g.emoji,g.name+' PURCHASED!','gun');}
+function equipGun(id){if(!ownedGuns[id])return;currentGun=id;gunMode=true;ammo=MAX_AMMO;isReloading=false;updateAmmoHud();updateGunHud();renderGuns();refreshVault();updatePlayer3D();updateLobbyBundle();updateLobbyGun();let g=GUNS.find(x=>x.id===id);if(g)renderWeaponsGunsList(g.cat);renderWeaponsKatanaList();showRewardPopup('GUN',GUNS.find(x=>x.id===id).name+' EQUIPPED!','gun');}
+function buyKatana(id){
+  let k=KATANAS.find(x=>x.id===id);
+  if(!k||ownedKatanas[id])return;
+  if(diamonds<k.price)return showRewardPopup('DIAMOND','DIAMOND KAM HAI!');
+  diamonds-=k.price;if(!isFinite(diamonds))diamonds=Infinity;
+  ownedKatanas[id]=true;
+  if(!wonItems.includes(k.name))wonItems.push(k.name);
+  if(k.id==='fire')document.getElementById('fireCard').style.display='flex';
+  if(k.id==='red')document.getElementById('redCard').style.display='flex';
+  if(k.id==='blue')document.getElementById('blueCard').style.display='flex';
+  updateCurrency();renderGuns();refreshVault();renderWeaponsKatanaList();
+  selectKatana(id);
+  showRewardPopup('KATANA',k.name+' PURCHASED!','katana');
+}
+function updateGunHud(){let h=document.getElementById('gunHud');if(currentGun&&gunMode){let g=GUNS.find(x=>x.id===currentGun);h.innerText=g.emoji+' '+g.name+' '+g.dmg;}else if(currentSkin&&currentSkin!=='none'&&currentSkin!==''){h.innerText='KATANA '+((SWORD_CONFIG[currentSkin]||{}).dmg||40);}else{h.innerText='EMPTY HANDS';}let btn=document.getElementById('gunBtn');if(btn)btn.innerHTML='🔫';updateAmmoHud();}
+function toggleGunMode(){if(!currentGun)return showRewardPopup('GUN','Pehle Store Guns se Gun Kharido!');gunMode=!gunMode;if(gunMode){ammo=MAX_AMMO;isReloading=false;}updateGunHud();updateAmmoHud();updatePlayer3D();updateLobbyBundle();updateLobbyGun();showRewardPopup(gunMode?'GUN':'KATANA',gunMode?'GUN MODE ON!':'KATANA MODE ON!',gunMode?'gun':'katana');}
+function refreshEmoteWheel(){let d=document.getElementById('slot-dance'),c=document.getElementById('slot-clap');if(emoteOwned){d.innerText='DANCE';d.classList.add('unlocked');c.innerText='CLAP';c.classList.add('unlocked');}else{d.innerText='+';d.classList.remove('unlocked');c.innerText='+';c.classList.remove('unlocked');}}
+function closeEmoteWheel(){document.getElementById('emoteWheel').classList.remove('show');}
+function doEmote(type){
+  if(!type)return;
+  if(!emoteEquipped||!emoteOwned)return;
+  currentEmote=type;emoteTimer=140;
+  document.querySelectorAll('.emote-btn').forEach(b=>b.classList.remove('active'));
+  let btn=document.querySelector('[data-emote="'+type+'"]');if(btn)btn.classList.add('active');
+  let n=document.getElementById('emoteName');
+  if(n){n.innerText='';n.style.display='none';}
+  setTimeout(closeEmoteWheel,300);
+}
+function openClassic(){document.getElementById('classicBox').style.display='block'}function closeClassic(){document.getElementById('classicBox').style.display='none'}
+function openProfile(){document.getElementById('profileBox').style.display='flex'}function closeProfile(){document.getElementById('profileBox').style.display='none'}
+function openLuck(){document.getElementById('luckBox').style.display='flex';showEventInsideLuck(document.getElementById('eventTabBtn'))}
+function closeLuck(){document.getElementById('luckBox').style.display='none'}
+function showLuckNormal(el,tab){document.querySelectorAll('.luck-slot').forEach(s=>s.classList.remove('active'));el.classList.add('active');document.getElementById('luckNormalView').style.display='flex';document.getElementById('luckEventView').style.display='none';document.getElementById('luckTabText').innerText=tab==='REWARDS'?'YOUR REWARDS':'TOP WINNERS';}
+function showEventInsideLuck(el){document.querySelectorAll('.luck-slot').forEach(s=>s.classList.remove('active'));if(el)el.classList.add('active');document.getElementById('luckNormalView').style.display='none';document.getElementById('luckEventView').style.display='flex';}
+function openStore(){document.getElementById('storeBox').style.display='flex';renderBundles();renderGuns();showStoreTab(document.querySelector('.store-slot'),'bundles')}function closeStore(){document.getElementById('storeBox').style.display='none'}
+function showStoreTab(el,tab){document.querySelectorAll('#storeBox .store-slot').forEach(s=>s.classList.remove('active'));if(el)el.classList.add('active');document.getElementById('storeBundlesView').style.display=tab==='bundles'?'flex':'none';document.getElementById('storeGunsView').style.display=tab==='guns'?'flex':'none';document.getElementById('storeEmotesView').style.display=tab==='emotes'?'flex':'none';document.getElementById('storeOtherView').style.display=tab==='others'?'flex':'none';}
+function openVault(){document.getElementById('vaultBox').style.display='flex';showVaultTab(document.querySelector('#vaultBox .store-slot'),'all')}function closeVault(){document.getElementById('vaultBox').style.display='none'}
+function showVaultTab(el,tab){vaultTab=tab;document.querySelectorAll('#vaultBox .store-slot').forEach(s=>s.classList.remove('active'));if(el)el.classList.add('active');refreshVault();}
+function refreshVault(){let box=document.getElementById('vaultContent');let html='';if(vaultTab==='all'||vaultTab==='bundles'){BUNDLES.forEach(b=>{if(ownedBundles[b.id])html+='<div class="bundle-card"><div class="bundle-top"><div class="bundle-dress"><div class="d-head"></div><div class="d-jacket"></div><div class="d-pant"><i></i><i></i></div></div><div class="bundle-info"><div class="bundle-name">'+b.name+'</div><div class="bundle-desc">Owned - Vault se EQUIP karo!</div></div></div><div class="bundle-price-row"><div class="bundle-price">OWNED</div><button class="bundle-equip '+(equippedBundle===b.id?'equipped':'')+'" onclick="event.stopPropagation();equipBundle(\''+b.id+'\')">'+(equippedBundle===b.id?'EQUIPPED':'EQUIP')+'</button></div></div>';});}if(vaultTab==='all'||vaultTab==='emotes'){if(emoteOwned)html+='<div class="emote-card"><div class="bundle-top"><div class="emote-preview">DANCE</div><div class="bundle-info"><div class="bundle-name" style="color:#FF00FF">DANCE + CLAP PACK</div><div class="bundle-desc">Owned!</div></div></div><div class="bundle-price-row"><div class="bundle-price">OWNED</div><button class="bundle-equip" onclick="event.stopPropagation();toggleEmoteEquip()">'+(emoteEquipped?'UNEQUIP':'EQUIP')+'</button></div></div>';}if(vaultTab==='all'||vaultTab==='guns'){GUNS.forEach(g=>{if(ownedGuns[g.id])html+='<div class="gun-card"><div class="bundle-top">'+gunDiagramHTML(g)+'<div class="bundle-info"><div class="bundle-name">'+g.name+'</div><div class="bundle-desc">'+g.desc+'</div></div></div><div class="bundle-price-row"><div class="bundle-price">OWNED</div><button class="bundle-equip" onclick="event.stopPropagation();equipGun(\''+g.id+'\')">EQUIP</button></div></div>';});}if(vaultTab==='all'||vaultTab==='weapons'){KATANAS.forEach(k=>{if(ownedKatanas[k.id])html+='<div class="bundle-card"><div class="bundle-top"><div class="emote-preview" style="animation:none;color:'+k.color+'">🗡️</div><div class="bundle-info"><div class="bundle-name">'+k.name+'</div><div class="bundle-desc">Luck / Store se Jeeta!</div></div></div><div class="bundle-price-row"><div class="bundle-price">OWNED</div><button class="bundle-equip" onclick="event.stopPropagation();selectKatana(\''+k.id+'\')">EQUIP</button></div></div>';});}if(!html)html='<div class="store-empty">Vault Khaali Hai!<br>Store se kuch Kharido!</div>';box.innerHTML=html;}
+function buyBundle(){buyBundle2('b1');}
+function toggleBundleEquip(){if(!bundleOwned)return;bundleEquipped=!bundleEquipped;let bb=document.getElementById('bundleBadge');if(bb)bb.style.display=bundleEquipped?'block':'none';refreshVault();}
+function buyEmote(){if(emoteOwned)return showRewardPopup('OK','Already Owned!');if(diamonds<500)return showRewardPopup('DIAMOND','DIAMOND KAM HAI!');diamonds-=500;if(!isFinite(diamonds))diamonds=Infinity;emoteOwned=true;updateCurrency();document.getElementById('emoteBuyBtn').innerText='OWNED';document.getElementById('emoteEquipBtn').style.display='block';refreshEmoteWheel();refreshVault();showRewardPopup('DANCE','DANCE + CLAP PURCHASED!','emote');}
+function toggleEmoteEquip(){if(!emoteOwned)return;emoteEquipped=!emoteEquipped;let btn=document.getElementById('emoteEquipBtn');btn.innerText=emoteEquipped?'UNEQUIP':'EQUIP';let eb=document.getElementById('emoteBadge');if(eb)eb.style.display=emoteEquipped?'block':'none';if(!emoteEquipped)closeEmoteWheel();refreshEmoteWheel();refreshVault();}
+function updateCurrency(){let dTxt=!isFinite(diamonds)?'∞':diamonds;document.getElementById('coinTop').innerText=coins;document.getElementById('diamondTop').innerText=dTxt;document.getElementById('coinProfile').innerText=coins;document.getElementById('diamondProfile').innerText=dTxt;let sd=document.getElementById('storeDia');if(sd)sd.innerText=dTxt;}
+function showRewardPopup(icon,text,kind){let s5=document.getElementById('screen5');if(s5&&s5.style.display==='block'&&!gameOver){return;}let box=document.querySelector('.reward-box');box.style.animation='none';void box.offsetWidth;box.style.animation='';let model=document.getElementById('rewardModel');let name=(text||'').replace(' PURCHASED!','').replace(' EQUIPPED!','').replace(' YOU WON ','').trim();let k=kind||'';let up=(text||'').toUpperCase();if(!k){if(up.indexOf('AK47')>=0||up.indexOf('P90')>=0||up.indexOf('AWM')>=0||up.indexOf('M1887')>=0||up.indexOf('UMP')>=0||up.indexOf('MP40')>=0||up.indexOf('GUN')>=0)k='gun';else if(up.indexOf('BUNDLE')>=0)k='bundle';else if(up.indexOf('KATANA')>=0)k='katana';else if(up.indexOf('DANCE')>=0||up.indexOf('CLAP')>=0)k='emote';}
+if(model){if(k==='gun')model.innerHTML='<div class="rm-gun"></div>';else if(k==='bundle')model.innerHTML='<div class="rm-bundle">👕</div>';else if(k==='katana')model.innerHTML='<div class="rm-katana"></div>';else if(k==='emote')model.innerHTML='<div class="rm-bundle">💃</div>';else if(up.indexOf('DIAMOND')>=0)model.innerHTML='<div style="font-size:48px">💎</div>';else if(up.indexOf('COIN')>=0)model.innerHTML='<div style="font-size:48px">🪙</div>';else model.innerHTML='';}
+document.getElementById('rewardIcon').style.display='none';document.getElementById('rewardText').innerText=name||text;document.getElementById('rewardPopup').style.display='flex';}
+function closeRewardPopup(){document.getElementById('rewardPopup').style.display='none';}
+let wonItems=[],spinning=false,ownedKatana=new Set();
+let eventRewards=[{name:'FIRE KATANA',skin:'fire',dmg:100,type:'katana',icon:'FIRE'},{name:'NO',skin:null,dmg:0,type:'no',icon:'X'},{name:'RED KATANA',skin:'red',dmg:40,type:'katana',icon:'RED'},{name:'GOLDEN KATANA',skin:'golden',dmg:75,type:'katana',icon:'GOLD'},{name:'BLUE KATANA',skin:'blue',dmg:40,type:'katana',icon:'BLUE'},{name:'COSMIC KATANA',skin:'cosmic',dmg:80,type:'katana',icon:'COSMIC'},{name:'100 COINS',skin:null,dmg:0,type:'coins',icon:'COIN'},{name:'100 COINS',skin:null,dmg:0,type:'coins',icon:'COIN'},{name:'100 COINS',skin:null,dmg:0,type:'coins',icon:'COIN'},{name:'100 COINS',skin:null,dmg:0,type:'coins',icon:'COIN'}];
+function markOwned(idx){ownedKatana.add(idx);let s=document.querySelector('.event-slot[data-idx="'+idx+'"]');if(s)s.classList.add('owned');refreshVault();}
+function saveToWeapons(idx){let r=eventRewards[idx];if(r.type==='katana'){if(!wonItems.includes(r.name))wonItems.push(r.name);ownedKatanas[r.skin]=true;markOwned(idx);if(r.skin==='fire')document.getElementById('fireCard').style.display='flex';if(r.skin==='red')document.getElementById('redCard').style.display='flex';if(r.skin==='blue')document.getElementById('blueCard').style.display='flex';currentSkin=r.skin;showKatana(r.skin);}else if(r.type==='coins'){coins+=100;}updateCurrency();refreshVault();renderWeaponsKatanaList();}
+function spinEvent(){if(spinning)return;let avail=[];for(let i=0;i<10;i++){if(eventRewards[i].type==='katana'&&ownedKatana.has(i))continue;avail.push(i);}if(!avail.length)return showRewardPopup('OK','SAB OWNED!');spinning=true;let slots=document.querySelectorAll('#luckEventView .event-slot');let target=avail[Math.floor(Math.random()*avail.length)];let pos=0,step=0;function tick(){slots.forEach(s=>s.classList.remove('hl'));slots[pos%10].classList.add('hl');pos++;step++;if(step<40)return setTimeout(tick,step>32?220:step>25?120:50);spinning=false;slots.forEach(s=>s.classList.remove('hl'));slots[target].classList.add('hl');let r=eventRewards[target];if(r.type==='no')showRewardPopup('X','KUCH NAHI MILA!');else if(r.type==='coins'){saveToWeapons(target);showRewardPopup('COIN','YOU WON 100 COINS');}else{saveToWeapons(target);showRewardPopup(r.icon,'YOU WON '+r.name,'katana');}}tick();}
+function openWeapons(){document.getElementById('weaponsBox').style.display='flex';showWeaponsTab(weaponsTab);if(currentSkin&&currentSkin!=='none'&&currentSkin!=='')showKatana(currentSkin);}function closeWeapons(){document.getElementById('weaponsBox').style.display='none';if(swordFxTimer)clearInterval(swordFxTimer);document.getElementById('swordFx').innerHTML='';}
+function openSkin(){document.getElementById('skinBox').style.display='flex'}function closeSkin(){document.getElementById('skinBox').style.display='none'}
+let currentSkin='',isSelecting=false;
+let SWORD_CONFIG={cosmic:{dmg:80,color:'#00e5ff',c3:0x00e5ff,glow:'#00e5ff',trail:'#b3f0ff',effect:'freeze',w:10},golden:{dmg:75,color:'#FFD700',c3:0xFFD700,glow:'#FFD700',trail:'#FFE88A',effect:'goldburst',w:9},fire:{dmg:100,color:'#FF3300',c3:0xFF3300,glow:'#FF6600',trail:'#FFAA00',effect:'burn',w:11},red:{dmg:40,color:'#FF0000',c3:0xFF0000,glow:'#FF0000',trail:'#FF5555',effect:'speed',w:8},blue:{dmg:40,color:'#0066FF',c3:0x0066FF,glow:'#0066FF',trail:'#66AAFF',effect:'knock',w:8},katana:{dmg:40,color:'#FFFFFF',c3:0xFFFFFF,glow:'#FFFFFF',trail:'#CCCCCC',effect:'none',w:7}};
+function selectKatana(s){
+  if(!ownedKatanas[s])return showRewardPopup('KATANA','Pehle STORE > GUNS se '+s.toUpperCase()+' KATANA Kharido!');
+  if(isSelecting)return;isSelecting=true;currentSkin=s;gunMode=false;updateGunHud();updateAmmoHud();updatePlayer3D();updateLobbyBundle();updateLobbyGun();closeSkin();showKatana(s);refreshVault();renderWeaponsKatanaList();setTimeout(()=>isSelecting=false,400)
+}
+function showKatana(s){
+  if(!s||s==='none'||s==='')return;
+  currentSkin=s;
+  let i=document.getElementById('slotIcon'),n=document.getElementById('slotName'),m=document.getElementById('katanaModel'),mn=document.getElementById('modelName'),a=document.getElementById('abilityText'),l=document.getElementById('currentSkin');
+  let map={cosmic:['COSMIC','COSMIC','COSMIC KATANA - BLUE + BARAF',80,'#00e5ff'],golden:['GOLD','GOLDEN V2','GOLDEN KATANA - GOLDEN GIRGA',75,'#FFD700'],fire:['FIRE','FIRE','FIRE KATANA',100,'#FF3300'],red:['RED','RED','RED KATANA',40,'#FF0000'],blue:['BLUE','BLUE','BLUE KATANA',40,'#0066FF'],katana:['KATANA','KATANA','NORMAL KATANA - NORMAL',40,'#fff']};
+  let d=map[s]||map.katana;
+  if(i)i.innerText=d[0];
+  if(n)n.innerText=d[1];
+  mn.innerText=d[2];a.innerHTML='ABILITY DAMAGE <span>'+d[3]+'</span>';if(l){l.innerText='';l.style.display='none';}
+  m.className='katana-model '+s;
+  m.style.color=d[4];
+  startSwordFx(s);
+  updateLobbyGun();
+}
+function showExitWarn(e){if(e)e.stopPropagation();document.getElementById('exitWarn').style.display='flex'}function hideExitWarn(){document.getElementById('exitWarn').style.display='none'}function confirmExit(){hideExitWarn();backToLobby()}
+let tapCount=0;function exitFull(e){if(e){e.stopPropagation();e.preventDefault()}tapCount++;if(tapCount>=2){tapCount=0;try{document.exitFullscreen()}catch(err){}try{screen.orientation.unlock()}catch(err){}document.getElementById('exitZone').style.display='none'}else setTimeout(()=>tapCount=0,800)}
+let moved=false;
+function goNext(){
+  if(!isLandscapeNow()){ checkRotate(); return; }
+  goNextReal();
+}
+function goNextReal(){
+  if(moved) return;
+  moved=true;
+  document.getElementById('screen1').style.display='none';
+  document.getElementById('screen2').style.display='block';
+  startLoading();startFire();
+}
+document.getElementById('screen1').onclick=goNext;
+document.getElementById('screen1').addEventListener('touchstart',goNext,{passive:true});
+function startLoading(){
+  let p=0,bar=document.getElementById('bar'),per=document.getElementById('percent');let t=setInterval(()=>{
+    p+=2;if(p>=100){p=100;clearInterval(t);per.innerText='LOADING... 100%';setTimeout(()=>{document.getElementById('screen2').style.display='none';document.getElementById('screen3').style.display='block'},400)}bar.style.width=p+'%';if(p<100)per.innerText='LOADING... '+p},160)}
+function startFire(){let box=document.getElementById('fireBox');setInterval(()=>{if(document.getElementById('screen2').style.display==='none')return;let f=document.createElement('div');f.className='flame';let s=12+Math.random()*22;f.style.width=s+'px';f.style.height=s*1.4+'px';f.style.left=(Math.random()*100)+'%';f.style.background='radial-gradient(circle,#fff,#FFFF00,#FFD700,#FF6A00,transparent)';box.appendChild(f);setTimeout(()=>f.remove(),1200)},100)}
+document.getElementById('screen3').onclick=()=>{ if(!isLandscapeNow()){ checkRotate(); return; } document.getElementById('screen3').style.display='none';document.getElementById('screen4').style.display='block';forceShowLobbyButtons();}
+let timerInterval=null,gameTimeSec=0,gameTimeInterval=null;
+function startGameTimer(){gameTimeSec=0;if(gameTimeInterval)clearInterval(gameTimeInterval);gameTimeInterval=setInterval(()=>{if(gameOver)return;gameTimeSec++;let m=String(Math.floor(gameTimeSec/60)).padStart(2,'0'),s=String(gameTimeSec%60).padStart(2,'0');document.getElementById('gameTimer').innerText='Time: '+m+':'+s},1000)}
+document.getElementById('startBtn').addEventListener('click',e=>{e.stopPropagation();autoFull();gameOver=true;if(timerInterval)clearInterval(timerInterval);let tBox=document.getElementById('timerBox'),tNum=document.getElementById('timerNum'),count=4;tBox.style.display='block';tNum.innerText=count;timerInterval=setInterval(()=>{count--;if(count<=0){clearInterval(timerInterval);timerInterval=null;tBox.style.display='none';document.getElementById('mainScreen').style.display='none';document.getElementById('screen5').style.display='block';init3D();resize3D();start3DGame();}else tNum.innerText=count},1000)});
+document.getElementById('cutBtn').addEventListener('click',e=>{e.stopPropagation();if(timerInterval){clearInterval(timerInterval);timerInterval=null}document.getElementById('timerBox').style.display='none'});
+let gameOver=true,spawnProtect=0,TOTAL_ENEMIES=50,totalKilled=0,totalSpawned=0;
+function updateLeft(){document.getElementById('left').innerText=(TOTAL_ENEMIES-totalKilled)}
+function winGame(){if(gameOver)return;gameOver=true;if(gameTimeInterval)clearInterval(gameTimeInterval);document.getElementById('winnerBox').style.display='block';document.getElementById('giftBtn').style.display='none';setTimeout(()=>{document.getElementById('giftBtn').style.display='block'},2000)}
+function deadGame(){if(gameOver)return;gameOver=true;if(gameTimeInterval)clearInterval(gameTimeInterval);document.getElementById('deadBox').style.display='block';document.getElementById('deadReturnBtn').style.display='none';setTimeout(()=>{document.getElementById('deadReturnBtn').style.display='block'},2000)}
+function backToLobby(){gameOver=true;holding=false;joy.x=0;joy.y=0;joyRun.x=0;joyRun.y=0;hideExitWarn();if(gameTimeInterval)clearInterval(gameTimeInterval);document.getElementById('winnerBox').style.display='none';document.getElementById('deadBox').style.display='none';document.getElementById('screen5').style.display='none';document.getElementById('mainScreen').style.display='block';document.getElementById('screen4').style.display='block';forceShowLobbyButtons();updateLobbyBundle();updateLobbyGun();}
+document.getElementById('giftBtn').addEventListener('click',e=>{e.stopPropagation();backToLobby()});
+document.getElementById('deadReturnBtn').addEventListener('click',e=>{e.stopPropagation();backToLobby()});
+function forceShowLobbyButtons(){
+  ['btnClassic','btnLuck','btnStore','btnVault','btnWeapons','startBtn'].forEach(id=>{
+    let el=document.getElementById(id);
+    if(!el)return;
+    el.style.visibility='visible';el.style.opacity='1';el.style.display=(id==='btnWeapons'?'flex':'block');
+    if(id==='startBtn')el.style.display='block';
+    if(id==='btnWeapons')el.style.display='flex';
+  });
+  let lb=document.querySelector('.lobby-bottom');if(lb){lb.style.display='flex';lb.style.visibility='visible';lb.style.opacity='1';}
+  try{localStorage.removeItem('cosmic_lobby_layout');}catch(e){}
+}
+function openSettings(e){if(e)e.stopPropagation();let b=document.getElementById('settingsBox');if(b)b.style.display='flex';}
+function closeSettings(){let b=document.getElementById('settingsBox');if(b)b.style.display='none';}
+function startCustomizeFromSettings(){
+  closeSettings();
+  let s5=document.getElementById('screen5');
+  if(s5&&s5.style.display==='block'){startCustomize();}
+  else{alert('GAME BUTTONS ke liye PLAY dabake GAME me jao, phir ⚙️ > GAME BUTTONS CUSTOMIZE dabao. Lobby ka koi Customize nahi hai.');}
+}
+function startCustomize(){closeSettings();isCustomizing=true;let cp=document.getElementById('customPanel');if(cp)cp.classList.add('show');['joy','joyRun','fireBtn','reloadBtn','gunBtn','jumpBtn','crouchBtn','proneBtn','freelookBtn'].forEach(id=>{let el=document.getElementById(id);if(el)el.classList.add('editing');});}
+function closeCustomize(){isCustomizing=false;let cp=document.getElementById('customPanel');if(cp)cp.classList.remove('show');['joy','joyRun','fireBtn','reloadBtn','gunBtn','jumpBtn','crouchBtn','proneBtn','freelookBtn'].forEach(id=>{let el=document.getElementById(id);if(el)el.classList.remove('editing');});}
+function saveCustomLayout(){try{let data={};['joy','joyRun','fireBtn','reloadBtn','gunBtn','jumpBtn','crouchBtn','proneBtn','freelookBtn'].forEach(id=>{let el=document.getElementById(id);if(!el)return;let r=el.getBoundingClientRect();let g=document.getElementById('game').getBoundingClientRect();let lx=r.left-g.left,ty=r.top-g.top;if(lx<0)lx=0;if(ty<0)ty=0;if(lx>g.width-40)lx=g.width-80;if(ty>g.height-40)ty=g.height-80;data[id]={left:lx+'px',top:ty+'px'};});localStorage.setItem('cosmic_custom_layout',JSON.stringify(data));}catch(e){}closeCustomize();alert('✅ GAME LAYOUT SAVE HO GAYA!');}
+function applyCustomLayout(){try{let raw=localStorage.getItem('cosmic_custom_layout');if(!raw)return;let data=JSON.parse(raw);let g=document.getElementById('game').getBoundingClientRect();Object.keys(data).forEach(id=>{let el=document.getElementById(id);if(!el)return;let lx=parseFloat(data[id].left),ty=parseFloat(data[id].top);if(isNaN(lx)||isNaN(ty))return;if(lx<0||ty<0||lx>g.width||ty>g.height)return;el.style.left=data[id].left;el.style.top=data[id].top;el.style.right='auto';el.style.bottom='auto';});}catch(e){}}
+function resetCustomLayout(){try{localStorage.removeItem('cosmic_custom_layout');localStorage.removeItem('cosmic_lobby_layout');}catch(e){}Object.keys(CUSTOM_DEFAULT).forEach(id=>{let el=document.getElementById(id);if(!el)return;let d=CUSTOM_DEFAULT[id];el.style.left=d.left||'';el.style.top=d.top||'';el.style.bottom=d.bottom||'';el.style.right=d.right||'';});closeCustomize();}
+let dragEl=null,dragStartX=0,dragStartY=0,dragOrigLeft=0,dragOrigTop=0,dragParent=null;
+function makeDraggable(el){
+  if(!el)return;
+  el.style.touchAction='none';
+  el.addEventListener('pointerdown',function(e){
+    if(!isCustomizing)return;
+    e.preventDefault();e.stopPropagation();
+    dragEl=el;dragParent=document.getElementById('game');
+    dragStartX=e.clientX;dragStartY=e.clientY;
+    let r=el.getBoundingClientRect();dragOrigLeft=r.left;dragOrigTop=r.top;
+    try{el.setPointerCapture(e.pointerId);}catch(err){}
+  });
+  el.addEventListener('pointermove',function(e){
+    if(dragEl!==el)return;
+    e.preventDefault();
+    let dx=e.clientX-dragStartX,dy=e.clientY-dragStartY;
+    let pr=dragParent.getBoundingClientRect();
+    let nl=dragOrigLeft-pr.left+dx,nt=dragOrigTop-pr.top+dy;
+    nl=Math.max(0,Math.min(pr.width-el.offsetWidth,nl));
+    nt=Math.max(0,Math.min(pr.height-el.offsetHeight,nt));
+    el.style.left=nl+'px';el.style.top=nt+'px';el.style.right='auto';el.style.bottom='auto';el.style.position='absolute';
+  });
+  el.addEventListener('pointerup',function(e){if(dragEl===el)dragEl=null;});
+  el.addEventListener('pointercancel',function(){dragEl=null;});
+}
+function setupCustomizeDrag(){
+  ['joy','joyRun','fireBtn','reloadBtn','gunBtn','jumpBtn','crouchBtn','proneBtn','freelookBtn'].forEach(id=>makeDraggable(document.getElementById(id)));
+}
+setupCustomizeDrag();
+forceShowLobbyButtons();
+function doJump(){if(isJumping||isProne)return;isJumping=true;jumpVel=0.28;}
+function toggleCrouch(){if(isProne){isProne=false;let pb=document.getElementById('proneBtn');if(pb)pb.classList.remove('active');}isCrouching=!isCrouching;let b=document.getElementById('crouchBtn');if(b)b.classList.toggle('active',isCrouching);}
+function toggleProne(){if(isCrouching){isCrouching=false;let cb=document.getElementById('crouchBtn');if(cb)cb.classList.remove('active');}isProne=!isProne;let b=document.getElementById('proneBtn');if(b)b.classList.toggle('active',isProne);}
+let scene3=null,camera3=null,renderer3=null,player3=null,playerBody3=null,sword3=null,gun3=null,legL3=null,legR3=null,armL3=null,armR3=null,foreArmL3=null,foreArmR3=null,handL3=null,handR3=null,head3=null,enemies3=[],game=document.getElementById('game');
+let joy={x:0,y:0},joyRun={x:0,y:0},holding=false,PLAYER_SPEED=0.12,ENEMY_SPEED=0.035;
+let p={x:0,z:0,hp:200,dir:0,walk:0,attacking:false,swingT:0,moving:false};
+let camYaw=0,camPitch=0,camTargetYaw=0,camTargetPitch=0;
+let joySmoothX=0,joySmoothY=0;
+let SENS=5,INVERT=-1;
+function setInvert(v){INVERT=-1;}
+function changeSens(v){SENS=parseFloat(v);let sv=document.getElementById('sensVal');if(sv)sv.innerText=v;}
+let camTouchId=null,joyTouchId=null,joyRunTouchId=null,camLastX=0,camLastY=0;
+let dmgNums=[],joyEl=document.getElementById('joy'),stick=document.getElementById('stick'),joyRunEl=document.getElementById('joyRun'),stickRun=document.getElementById('stickRun');
+let aimLocked=false,aimLockDiff=0;
+function toggleSensPanel(e){if(e)e.stopPropagation();openSettings(e);}
+function isPortraitRotated(){return false;}
+function resize3D(){if(!renderer3)return;renderer3.setSize(game.clientWidth,game.clientHeight);camera3.aspect=game.clientWidth/game.clientHeight;camera3.updateProjectionMatrix();}
+window.addEventListener('resize',resize3D);
+function init3D(){
+  if(renderer3){return;}
+  try{
+    let cv=document.getElementById('cv');
+    scene3=new THREE.Scene();
+    scene3.background=new THREE.Color(0x4fc3ff);scene3.fog=new THREE.Fog(0x9fd8ff,45,130);
+    camera3=new THREE.PerspectiveCamera(68,game.clientWidth/game.clientHeight,0.1,500);
+    renderer3=new THREE.WebGLRenderer({canvas:cv,antialias:true});
+    renderer3.setSize(game.clientWidth,game.clientHeight);
+    renderer3.setPixelRatio(Math.min(window.devicePixelRatio,2));
+    renderer3.shadowMap.enabled=true;renderer3.shadowMap.type=THREE.PCFSoftShadowMap;
+    if(renderer3.outputEncoding!==undefined)renderer3.outputEncoding=THREE.sRGBEncoding;
+    if(renderer3.toneMapping!==undefined){renderer3.toneMapping=THREE.ACESFilmicToneMapping;renderer3.toneMappingExposure=1.15;}
+    scene3.add(new THREE.AmbientLight(0xffffff,0.85));
+    let hemi=new THREE.HemisphereLight(0xbfe3ff,0x2a5a1a,0.85);scene3.add(hemi);
+    let sun=new THREE.DirectionalLight(0xfff2cc,1.25);sun.position.set(25,35,15);sun.castShadow=true;sun.shadow.mapSize.set(2048,2048);sun.shadow.camera.left=-70;sun.shadow.camera.right=70;sun.shadow.camera.top=70;sun.shadow.camera.bottom=-70;scene3.add(sun);
+    let sunBall=new THREE.Mesh(new THREE.SphereGeometry(6,16,16),new THREE.MeshBasicMaterial({color:0xFFFACD}));sunBall.position.set(60,55,-80);scene3.add(sunBall);
+    let sunGlow=new THREE.Mesh(new THREE.SphereGeometry(11,16,16),new THREE.MeshBasicMaterial({color:0xFFD700,transparent:true,opacity:0.35}));sunGlow.position.set(60,55,-80);scene3.add(sunGlow);
+    for(let i=0;i<6;i++){let cloud=new THREE.Mesh(new THREE.SphereGeometry(4+Math.random()*3,10,10),new THREE.MeshLambertMaterial({color:0xffffff,transparent:true,opacity:0.95}));cloud.position.set(-50+i*22,22+Math.random()*6,-60);cloud.scale.y=0.55;scene3.add(cloud);}
+    let ground=new THREE.Mesh(new THREE.PlaneGeometry(140,140),new THREE.MeshLambertMaterial({color:0x2ecc40}));ground.rotation.x=-Math.PI/2;ground.receiveShadow=true;scene3.add(ground);
+    let path=new THREE.Mesh(new THREE.PlaneGeometry(10,140),new THREE.MeshLambertMaterial({color:0xFFD166}));path.rotation.x=-Math.PI/2;path.position.y=0.02;path.receiveShadow=true;scene3.add(path);
+    let path2=new THREE.Mesh(new THREE.PlaneGeometry(140,3),new THREE.MeshLambertMaterial({color:0xFF6B6B}));path2.rotation.x=-Math.PI/2;path2.position.y=0.03;path2.position.z=20;scene3.add(path2);
+    let grid=new THREE.GridHelper(140,70,0x2a6a1a,0x2a6a1a);grid.position.y=0.01;grid.material.transparent=true;grid.material.opacity=0.12;scene3.add(grid);
+    for(let i=0;i<38;i++){let t=new THREE.Group();let trunk=new THREE.Mesh(new THREE.CylinderGeometry(0.32,0.45,2.2,8),new THREE.MeshLambertMaterial({color:0x6b3a00}));trunk.position.y=1.1;trunk.castShadow=true;let cols=[0x00c853,0xff5252,0xffd600,0xff6d00,0x7c4dff,0x00e5ff];let leaves=new THREE.Mesh(new THREE.SphereGeometry(2.0,10,10),new THREE.MeshLambertMaterial({color:cols[i%cols.length]}));leaves.position.y=3.4;leaves.castShadow=true;let leaves2=new THREE.Mesh(new THREE.SphereGeometry(1.3,10,10),new THREE.MeshLambertMaterial({color:0x69f0ae}));leaves2.position.set(0.8,4.4,0.4);leaves2.castShadow=true;t.add(trunk,leaves,leaves2);let tx=(Math.random()-0.5)*100,tz=(Math.random()-0.5)*100;if(Math.abs(tx)<8)tx+=14;t.position.set(tx,0,tz);scene3.add(t);}
+    for(let i=0;i<24;i++){let fc=[0xff1744,0xffea00,0x00e5ff,0xff4081,0x76ff03];let f=new THREE.Mesh(new THREE.SphereGeometry(0.35,8,8),new THREE.MeshLambertMaterial({color:fc[i%fc.length],emissive:fc[i%fc.length],emissiveIntensity:0.4}));f.position.set((Math.random()-0.5)*110,0.35,(Math.random()-0.5)*110);scene3.add(f);}
+    for(let i=0;i<12;i++){let cols2=[0xff5252,0xffd740,0x40c4ff,0xb388ff,0x69f0ae];let rock=new THREE.Mesh(new THREE.DodecahedronGeometry(0.7+Math.random()*0.8),new THREE.MeshLambertMaterial({color:cols2[i%cols2.length]}));rock.position.set((Math.random()-0.5)*110,0.4,(Math.random()-0.5)*110);rock.castShadow=true;scene3.add(rock);}
+    player3=new THREE.Group();
+    player3.scale.set(1.15,1.15,1.15);
+    let skinMat=new THREE.MeshLambertMaterial({color:0xffc79a});
+    let jointMat=new THREE.MeshLambertMaterial({color:0xe8a06a});
+    let bodyMat=new THREE.MeshLambertMaterial({color:0x111111});
+    playerBody3=new THREE.Mesh(new THREE.BoxGeometry(1,1.35,0.55),bodyMat);playerBody3.position.y=0.85;playerBody3.castShadow=true;
+    let gold=new THREE.Mesh(new THREE.BoxGeometry(1.02,0.13,0.57),new THREE.MeshLambertMaterial({color:0xFFD700}));gold.position.y=0.82;
+    let pocket=new THREE.Mesh(new THREE.BoxGeometry(0.28,0.28,0.05),new THREE.MeshLambertMaterial({color:0x001a44}));pocket.position.set(-0.28,1.05,0.29);
+    let pocket2=pocket.clone();pocket2.position.x=0.28;
+    let neck=new THREE.Mesh(new THREE.CylinderGeometry(0.14,0.16,0.28,12),new THREE.MeshLambertMaterial({color:0xe8a06a}));neck.position.y=1.68;
+    let headGroup=new THREE.Group();headGroup.position.y=1.82;head3=headGroup;
+    head3.add(new THREE.Mesh(new THREE.BoxGeometry(0.72,0.68,0.62),skinMat));
+    head3.children[0].position.y=0.34;head3.children[0].castShadow=true;
+    let earL=new THREE.Mesh(new THREE.BoxGeometry(0.1,0.18,0.14),skinMat);earL.position.set(-0.4,0.34,0);
+    let earR=earL.clone();earR.position.x=0.4;
+    let hair=new THREE.Mesh(new THREE.BoxGeometry(0.76,0.22,0.66),new THREE.MeshLambertMaterial({color:0x111111}));hair.position.y=0.62;
+    let hairBack=new THREE.Mesh(new THREE.BoxGeometry(0.76,0.5,0.1),new THREE.MeshLambertMaterial({color:0x111111}));hairBack.position.set(0,0.35,-0.32);
+    let browL=new THREE.Mesh(new THREE.BoxGeometry(0.16,0.04,0.03),new THREE.MeshLambertMaterial({color:0x111111}));browL.position.set(-0.17,0.48,0.32);
+    let browR=browL.clone();browR.position.x=0.17;
+    let eyeWL=new THREE.Mesh(new THREE.SphereGeometry(0.07,10,10),new THREE.MeshLambertMaterial({color:0xffffff}));eyeWL.position.set(-0.17,0.38,0.31);eyeWL.scale.z=0.4;
+    let eyeWR=eyeWL.clone();eyeWR.position.x=0.17;
+    let eyeBL=new THREE.Mesh(new THREE.SphereGeometry(0.035,10,10),new THREE.MeshLambertMaterial({color:0x000000}));eyeBL.position.set(-0.17,0.38,0.36);
+    let eyeBR=eyeBL.clone();eyeBR.position.x=0.17;
+    let nose=new THREE.Mesh(new THREE.BoxGeometry(0.07,0.12,0.08),new THREE.MeshLambertMaterial({color:0xe8a06a}));nose.position.set(0,0.26,0.33);
+    let mouth=new THREE.Mesh(new THREE.BoxGeometry(0.2,0.05,0.03),new THREE.MeshLambertMaterial({color:0xaa3344}));mouth.position.set(0,0.1,0.32);
+    let cheekL=new THREE.Mesh(new THREE.SphereGeometry(0.06,8,8),new THREE.MeshLambertMaterial({color:0xff9999}));cheekL.position.set(-0.26,0.2,0.28);
+    let cheekR=cheekL.clone();cheekR.position.x=0.26;
+    headGroup.add(earL,earR,hair,hairBack,browL,browR,eyeWL,eyeWR,eyeBL,eyeBR,nose,mouth,cheekL,cheekR);
+    armL3=new THREE.Group();armL3.position.set(-0.58,1.55,0);
+    let upL=new THREE.Mesh(new THREE.BoxGeometry(0.22,0.55,0.22),skinMat);upL.position.y=-0.25;
+    let elL=new THREE.Mesh(new THREE.SphereGeometry(0.15,10,10),jointMat);elL.position.y=-0.55;
+    foreArmL3=new THREE.Group();foreArmL3.position.y=-0.55;
+    let foreL=new THREE.Mesh(new THREE.BoxGeometry(0.20,0.50,0.20),skinMat);foreL.position.y=-0.25;
+    let wrL=new THREE.Mesh(new THREE.SphereGeometry(0.13,10,10),jointMat);wrL.position.y=-0.52;
+    handL3=new THREE.Group();handL3.position.y=-0.62;
+    let palmL=new THREE.Mesh(new THREE.SphereGeometry(0.19,12,12),skinMat);palmL.position.y=-0.08;palmL.scale.set(1,1,1.3);
+    let fistL=new THREE.Mesh(new THREE.BoxGeometry(0.24,0.24,0.24),new THREE.MeshLambertMaterial({color:0xffffff}));fistL.position.set(0,-0.08,0);
+    handL3.add(palmL,fistL);foreArmL3.add(foreL,wrL,handL3);armL3.add(upL,elL,foreArmL3);
+    armR3=new THREE.Group();armR3.position.set(0.68,1.55,0);
+    let upR=new THREE.Mesh(new THREE.BoxGeometry(0.22,0.55,0.22),skinMat);upR.position.y=-0.25;
+    let elR=new THREE.Mesh(new THREE.SphereGeometry(0.15,10,10),jointMat);elR.position.y=-0.55;
+    foreArmR3=new THREE.Group();foreArmR3.position.y=-0.55;
+    let foreR=new THREE.Mesh(new THREE.BoxGeometry(0.20,0.50,0.20),skinMat);foreR.position.y=-0.25;
+    let wrR=new THREE.Mesh(new THREE.SphereGeometry(0.13,10,10),jointMat);wrR.position.y=-0.52;
+    handR3=new THREE.Group();handR3.position.y=-0.60;
+    let palmR=new THREE.Mesh(new THREE.SphereGeometry(0.17,12,12),skinMat);palmR.position.y=-0.08;
+    let fistR=new THREE.Mesh(new THREE.BoxGeometry(0.22,0.22,0.22),new THREE.MeshLambertMaterial({color:0xffffff}));fistR.position.set(0,-0.08,0);
+    handR3.add(palmR,fistR);foreArmR3.add(foreR,wrR,handR3);armR3.add(upR,elR,foreArmR3);
+    legL3=new THREE.Group();legL3.position.set(-0.22,0.30,0);
+    let thighL=new THREE.Mesh(new THREE.BoxGeometry(0.30,0.45,0.30),new THREE.MeshLambertMaterial({color:0xFFFFFF}));thighL.position.y=-0.20;
+    let kneeL=new THREE.Mesh(new THREE.SphereGeometry(0.16,10,10),jointMat);kneeL.position.y=-0.45;
+    let shinL=new THREE.Group();shinL.position.y=-0.45;
+    let shinML=new THREE.Mesh(new THREE.BoxGeometry(0.28,0.45,0.28),new THREE.MeshLambertMaterial({color:0xFFFFFF}));shinML.position.y=-0.22;
+    let ankleL=new THREE.Mesh(new THREE.SphereGeometry(0.13,10,10),jointMat);ankleL.position.y=-0.46;
+    let footL=new THREE.Group();footL.position.y=-0.52;
+    let footML=new THREE.Mesh(new THREE.BoxGeometry(0.30,0.10,0.48),skinMat);footML.position.set(0,-0.02,0.10);
+    footL.add(footML);
+    for(let i=0;i<5;i++){let toe=new THREE.Mesh(new THREE.BoxGeometry(0.045,0.05,0.12),skinMat);toe.position.set(-0.10+i*0.05,-0.02,0.38);footL.add(toe);}
+    shinL.add(shinML,ankleL,footL);legL3.add(thighL,kneeL,shinL);
+    legR3=new THREE.Group();legR3.position.set(0.22,0.30,0);
+    let thighR=new THREE.Mesh(new THREE.BoxGeometry(0.30,0.45,0.30),new THREE.MeshLambertMaterial({color:0xFFFFFF}));thighR.position.y=-0.20;
+    let kneeR=new THREE.Mesh(new THREE.SphereGeometry(0.16,10,10),jointMat);kneeR.position.y=-0.45;
+    let shinR=new THREE.Group();shinR.position.y=-0.45;
+    let shinMR=new THREE.Mesh(new THREE.BoxGeometry(0.28,0.45,0.28),new THREE.MeshLambertMaterial({color:0xFFFFFF}));shinMR.position.y=-0.22;
+    let ankleR=new THREE.Mesh(new THREE.SphereGeometry(0.13,10,10),jointMat);ankleR.position.y=-0.46;
+    let footR=new THREE.Group();footR.position.y=-0.52;
+    let footMR=new THREE.Mesh(new THREE.BoxGeometry(0.30,0.10,0.48),skinMat);footMR.position.set(0,-0.02,0.10);
+    footR.add(footMR);
+    for(let i=0;i<5;i++){let toe=new THREE.Mesh(new THREE.BoxGeometry(0.045,0.05,0.12),skinMat);toe.position.set(-0.10+i*0.05,-0.02,0.38);footR.add(toe);}
+    shinR.add(shinMR,ankleR,footR);legR3.add(thighR,kneeR,shinR);
+    gun3=new THREE.Group();gun3.position.set(0.02,0.95,0.58);gun3.rotation.y=Math.PI/2-0.45;gun3.visible=false;
+    let gBody=new THREE.Mesh(new THREE.BoxGeometry(0.18,0.22,1.35),new THREE.MeshLambertMaterial({color:0x222222}));gBody.position.set(0,0,0);
+    let gBar=new THREE.Mesh(new THREE.BoxGeometry(0.08,0.08,0.55),new THREE.MeshLambertMaterial({color:0x888888}));gBar.position.set(0,0.03,0.9);
+    let gMag=new THREE.Mesh(new THREE.BoxGeometry(0.09,0.35,0.14),new THREE.MeshLambertMaterial({color:0x111111}));gMag.position.set(0,-0.28,0.15);
+    gun3.add(gBody,gBar,gMag);
+    sword3=new THREE.Group();sword3.position.set(0,-0.08,0);sword3.rotation.set(2.09,0,0);sword3.visible=false;
+    handL3.add(sword3);
+    let kHandle=new THREE.Mesh(new THREE.BoxGeometry(0.09,0.42,0.09),new THREE.MeshLambertMaterial({color:0x5a3a00}));kHandle.position.set(0,-0.08,0);
+    let kGuard=new THREE.Mesh(new THREE.BoxGeometry(0.28,0.08,0.12),new THREE.MeshLambertMaterial({color:0xFFD700}));kGuard.position.set(0,0.14,0);
+    let kBlade=new THREE.Mesh(new THREE.BoxGeometry(0.10,1.65,0.06),new THREE.MeshLambertMaterial({color:0xFFFFFF,emissive:0xFFFFFF,emissiveIntensity:0.7}));kBlade.position.set(0,1.0,0);kBlade.rotation.z=-0.15;
+    let kTip=new THREE.Mesh(new THREE.BoxGeometry(0.10,0.18,0.06),new THREE.MeshLambertMaterial({color:0xFFFFFF,emissive:0xFFFFFF,emissiveIntensity:0.7}));kTip.position.set(0.12,1.87,0);kTip.rotation.z=-0.6;
+    sword3.add(kHandle,kGuard,kBlade,kTip);
+    window._gameKatanaBlade=kBlade;window._gameKatanaTip=kTip;
+    player3.add(playerBody3,gold,pocket,pocket2,neck,headGroup,armL3,armR3,legL3,legR3,gun3);
+    player3.visible=true;
+    scene3.add(player3);
+    let fpsGun=new THREE.Group();fpsGun.name='fpsGun';let gunBody=new THREE.Mesh(new THREE.BoxGeometry(0.12,0.18,0.9),new THREE.MeshLambertMaterial({color:0x111111}));let gunTip=new THREE.Mesh(new THREE.BoxGeometry(0.08,0.08,0.3),new THREE.MeshLambertMaterial({color:0x333333}));gunTip.position.set(0,0,-0.6);fpsGun.add(gunBody,gunTip);fpsGun.position.set(0.35,-0.35,-0.8);fpsGun.visible=false;camera3.add(fpsGun);scene3.add(camera3);
+    let fpsSword=new THREE.Group();fpsSword.name='fpsSword';let sBlade=new THREE.Mesh(new THREE.BoxGeometry(0.08,1.2,0.08),new THREE.MeshLambertMaterial({color:0xFFFFFF,emissive:0xFFFFFF,emissiveIntensity:1}));sBlade.position.set(0,0,-0.8);sBlade.rotation.x=0.3;fpsSword.add(sBlade);fpsSword.position.set(-0.4,-0.4,-0.8);fpsSword.visible=false;camera3.add(fpsSword);
+    window._fpsGun=fpsGun;window._fpsSword=fpsSword;updatePlayer3D();
+  }catch(e){}
+}
+function updatePlayer3D(){
+  if(window._fpsGun&&window._fpsSword){window._fpsGun.visible=false;window._fpsSword.visible=false;}
+  if(sword3){
+    let k=SWORD_CONFIG[currentSkin]||SWORD_CONFIG.katana;
+    let hasKat=(!!currentSkin&&currentSkin!=='none'&&currentSkin!=='');
+    sword3.visible=hasKat&&!(gunMode&&!!currentGun);
+    if(window._gameKatanaBlade){window._gameKatanaBlade.material.color.setHex(k.c3);window._gameKatanaBlade.material.emissive.setHex(k.c3);}
+    if(window._gameKatanaTip){window._gameKatanaTip.material.color.setHex(k.c3);window._gameKatanaTip.material.emissive.setHex(k.c3);}
+  }
+  if(gun3){gun3.visible=gunMode&&!!currentGun;}
+  if(playerBody3){let b=BUNDLES.find(x=>x.id===equippedBundle);if(b)playerBody3.material.color.setHex(b.c3);}
+  if(armL3&&armR3&&foreArmL3&&foreArmR3){
+    let gunHold=!!(gunMode&&currentGun);
+    let hasKat=!gunHold && !!currentSkin && currentSkin!=='none' && currentSkin!=='';
+    let hasNothing=!gunHold && !hasKat;
+    if(hasNothing){armL3.rotation.set(0,0,0);armR3.rotation.set(0,0,0);foreArmL3.rotation.set(0,0,0);foreArmR3.rotation.set(0,0,0);}
+    else if(gunHold){armL3.rotation.set(-0.45,0,-0.45);armR3.rotation.set(-0.20,0,-0.05);foreArmL3.rotation.set(-1.05,0,0.95);foreArmR3.rotation.set(-1.57,0,0.10);}
+    else{armL3.rotation.set(-0.65,0,-0.75);armR3.rotation.set(0,0,0);foreArmL3.rotation.set(-1.05,0,0.95);foreArmR3.rotation.set(0,0,0);}
+  }
+  if(player3){
+    if(isProne){player3.scale.set(1.15,0.45,1.15);}
+    else if(isCrouching){player3.scale.set(1.15,0.85,1.15);}
+    else{player3.scale.set(1.15,1.15,1.15);}
+  }
+}
+function makeEnemy3D(i){let g=new THREE.Group();let col=[0xff3333,0xff00ff,0xFFD700,0xff6600,0x00ffff][i%5];let b=new THREE.Mesh(new THREE.BoxGeometry(1,1.6,0.6),new THREE.MeshLambertMaterial({color:col,emissive:col,emissiveIntensity:0.25}));b.position.y=1.1;b.castShadow=true;let h=new THREE.Mesh(new THREE.BoxGeometry(0.7,0.7,0.7),new THREE.MeshLambertMaterial({color:0xffd1b3}));h.position.y=2.3;h.castShadow=true;g.add(b,h);let x,z;do{x=(Math.random()-0.5)*80;z=(Math.random()-0.5)*80}while(Math.hypot(x-p.x,z-p.z)<15);g.position.set(x,0,z);let hp=200+Math.floor(i/10)*100;scene3.add(g);return{mesh:g,x:x,z:z,hp:hp,maxHp:hp,cool:120,frozen:0,burn:0,dir:0};}
+function spawnEnemies3D(){enemies3.forEach(e=>{try{scene3.remove(e.mesh)}catch(err){}});enemies3=[];totalSpawned=0;for(let i=0;i<10;i++){enemies3.push(makeEnemy3D(i));totalSpawned++;}updateLeft();}
+function start3DGame(){p.hp=200;p.x=0;p.z=0;p.dir=0;camYaw=0;camPitch=0;camTargetYaw=0;camTargetPitch=0;joySmoothX=0;joySmoothY=0;p.attacking=false;p.swingT=0;p.moving=false;p.walk=0;holding=false;joy.x=0;joy.y=0;joyRun.x=0;joyRun.y=0;isCrouching=false;isProne=false;isJumping=false;jumpY=0;jumpVel=0;freeLookOn=false;ammo=MAX_AMMO;isReloading=false;updateAmmoHud();bullets3D.forEach(b=>{try{scene3.remove(b.mesh)}catch(e){}});bullets3D=[];document.getElementById('hpText').innerText=200;document.getElementById('hpFill').style.width='100%';totalKilled=0;totalSpawned=0;spawnEnemies3D();startGameTimer();dmgNums=[];spawnProtect=180;gameOver=false;updateGunHud();updatePlayer3D();applyCustomLayout();if(!window._loopStarted){window._loopStarted=true;loop3D();}}
+function joyMove(t,el,stickEl,joyObj,isRun){
+  let r=el.getBoundingClientRect();let cx=r.left+r.width/2,cy=r.top+r.height/2;let dx=t.clientX-cx,dy=t.clientY-cy;let d=Math.sqrt(dx*dx+dy*dy);let maxR=r.width/2-25;if(maxR<10)maxR=40;if(d>maxR){dx=dx/d*maxR;dy=dy/d*maxR}let vx=dx,vy=dy;stickEl.style.left=((r.width/2-25)+dx)+'px';stickEl.style.top=((r.height/2-25)+dy)+'px';joyObj.x=-vx/maxR;joyObj.y=vy/maxR;
+}
+joyEl.addEventListener('touchstart',e=>{if(isCustomizing)return;e.preventDefault();e.stopPropagation();if(joyTouchId!==null)return;let t=e.changedTouches[0];joyTouchId=t.identifier;joyMove(t,joyEl,stick,joy,false);},{passive:false});
+joyEl.addEventListener('touchmove',e=>{if(isCustomizing)return;e.preventDefault();e.stopPropagation();if(joyTouchId===null)return;let t=null;for(let i=0;i<e.changedTouches.length;i++){if(e.changedTouches[i].identifier===joyTouchId)t=e.changedTouches[i];}if(!t)return;joyMove(t,joyEl,stick,joy,false);},{passive:false});
+function joyEnd(e){for(let i=0;i<e.changedTouches.length;i++){if(e.changedTouches[i].identifier===joyTouchId){joyTouchId=null;joy.x=0;joy.y=0;stick.style.left='40px';stick.style.top='40px';}}}
+joyEl.addEventListener('touchend',joyEnd);joyEl.addEventListener('touchcancel',joyEnd);
+joyRunEl.addEventListener('touchstart',e=>{if(isCustomizing)return;e.preventDefault();e.stopPropagation();if(joyRunTouchId!==null)return;let t=e.changedTouches[0];joyRunTouchId=t.identifier;joyMove(t,joyRunEl,stickRun,joyRun,true);},{passive:false});
+joyRunEl.addEventListener('touchmove',e=>{if(isCustomizing)return;e.preventDefault();e.stopPropagation();if(joyRunTouchId===null)return;let t=null;for(let i=0;i<e.changedTouches.length;i++){if(e.changedTouches[i].identifier===joyRunTouchId)t=e.changedTouches[i];}if(!t)return;joyMove(t,joyRunEl,stickRun,joyRun,true);},{passive:false});
+function joyRunEnd(e){for(let i=0;i<e.changedTouches.length;i++){if(e.changedTouches[i].identifier===joyRunTouchId){joyRunTouchId=null;joyRun.x=0;joyRun.y=0;stickRun.style.left='32px';stickRun.style.top='32px';}}}
+joyRunEl.addEventListener('touchend',joyRunEnd);joyRunEl.addEventListener('touchcancel',joyRunEnd);
+function fixCam(dx,dy){let s=SENS*0.01;camTargetYaw+=dx*s*INVERT;camTargetPitch-=dy*s*0.6;if(camTargetPitch<-0.85)camTargetPitch=-0.85;if(camTargetPitch>0.85)camTargetPitch=0.85;}
+game.addEventListener('touchstart',e=>{if(isCustomizing)return;if(e.target.closest('#joy')||e.target.closest('#joyRun')||e.target.closest('#fireBtn')||e.target.closest('#reloadBtn')||e.target.closest('#gunBtn')||e.target.closest('#jumpBtn')||e.target.closest('#crouchBtn')||e.target.closest('#proneBtn')||e.target.closest('#freelookBtn')||e.target.closest('#settingsBtn')||e.target.closest('#lobbySettingsBtn')||e.target.closest('#exitGameBtn')||e.target.closest('#exitWarn')||e.target.closest('#customPanel')||e.target.closest('#settingsBox'))return;if(camTouchId!==null)return;let t=e.changedTouches[0];if(t.identifier===joyTouchId||t.identifier===joyRunTouchId)return;camTouchId=t.identifier;camLastX=t.clientX;camLastY=t.clientY;},{passive:true});
+game.addEventListener('touchmove',e=>{if(camTouchId===null)return;let t=null;for(let i=0;i<e.changedTouches.length;i++){if(e.changedTouches[i].identifier===camTouchId)t=e.changedTouches[i];}if(!t)return;let dx=t.clientX-camLastX;let dy=t.clientY-camLastY;camLastX=t.clientX;camLastY=t.clientY;fixCam(dx,dy);e.preventDefault();},{passive:false});
+function camEnd(e){for(let i=0;i<e.changedTouches.length;i++){if(e.changedTouches[i].identifier===camTouchId)camTouchId=null;}}
+game.addEventListener('touchend',camEnd);game.addEventListener('touchcancel',camEnd);
+game.addEventListener('mousedown',e=>{if(isCustomizing)return;if(e.target.closest('#joy')||e.target.closest('#joyRun')||e.target.closest('#fireBtn')||e.target.closest('#reloadBtn')||e.target.closest('#gunBtn')||e.target.closest('#jumpBtn')||e.target.closest('#crouchBtn')||e.target.closest('#proneBtn')||e.target.closest('#freelookBtn')||e.target.closest('#settingsBtn')||e.target.closest('#lobbySettingsBtn'))return;camTouchId='mouse';camLastX=e.clientX;camLastY=e.clientY;});
+game.addEventListener('mousemove',e=>{if(camTouchId!=='mouse')return;let dx=e.clientX-camLastX;let dy=e.clientY-camLastY;camLastX=e.clientX;camLastY=e.clientY;fixCam(dx,dy);});
+game.addEventListener('mouseup',()=>{if(camTouchId==='mouse')camTouchId=null;});
+let fb=document.getElementById('fireBtn');fb.addEventListener('touchstart',e=>{if(isCustomizing)return;e.preventDefault();e.stopPropagation();holding=true;},{passive:false});fb.addEventListener('touchend',()=>holding=false);fb.addEventListener('touchcancel',()=>holding=false);fb.addEventListener('mousedown',e=>{if(isCustomizing)return;e.stopPropagation();holding=true});addEventListener('mouseup',()=>holding=false);
+let rbBtn=document.getElementById('reloadBtn');
+if(rbBtn){
+  rbBtn.addEventListener('touchstart',e=>{if(isCustomizing)return;e.preventDefault();e.stopPropagation();doReload();},{passive:false});
+  rbBtn.addEventListener('click',e=>{if(isCustomizing)return;e.preventDefault();e.stopPropagation();doReload();});
+  rbBtn.addEventListener('mousedown',e=>{if(isCustomizing)return;e.stopPropagation();doReload();});
+}
+let jb=document.getElementById('jumpBtn');if(jb){jb.addEventListener('touchstart',e=>{if(isCustomizing)return;e.preventDefault();e.stopPropagation();doJump();},{passive:false});jb.addEventListener('mousedown',e=>{if(isCustomizing)return;e.stopPropagation();doJump();});}
+let cb=document.getElementById('crouchBtn');if(cb){cb.addEventListener('touchstart',e=>{if(isCustomizing)return;e.preventDefault();e.stopPropagation();toggleCrouch();updatePlayer3D();},{passive:false});cb.addEventListener('mousedown',e=>{if(isCustomizing)return;e.stopPropagation();toggleCrouch();updatePlayer3D();});}
+let pb=document.getElementById('proneBtn');if(pb){pb.addEventListener('touchstart',e=>{if(isCustomizing)return;e.preventDefault();e.stopPropagation();toggleProne();updatePlayer3D();},{passive:false});pb.addEventListener('mousedown',e=>{if(isCustomizing)return;e.stopPropagation();toggleProne();updatePlayer3D();});}
+let flb=document.getElementById('freelookBtn');if(flb){
+  function flOn(e){if(isCustomizing)return;if(e){e.preventDefault();e.stopPropagation();}freeLookOn=true;freeLookYaw=camYaw;flb.classList.add('active');}
+  function flOff(){freeLookOn=false;flb.classList.remove('active');}
+  flb.addEventListener('touchstart',flOn,{passive:false});
+  flb.addEventListener('touchend',flOff);flb.addEventListener('touchcancel',flOff);
+  flb.addEventListener('mousedown',flOn);addEventListener('mouseup',flOff);
+}
+function normAng(a){while(a>Math.PI)a-=Math.PI*2;while(a<-Math.PI)a+=Math.PI*2;return a;}
+function getAimAssistTarget(){let best=null,bestAbs=0.42;enemies3.forEach(e=>{let dist=Math.hypot(e.x-p.x,e.z-p.z);if(dist>55)return;let ang=Math.atan2(e.x-p.x,e.z-p.z);let diff=normAng(ang-camYaw);if(Math.abs(diff)<bestAbs){bestAbs=Math.abs(diff);best={e:e,ang:ang,diff:diff,dist:dist};}});return best;}
+function getMuzzlePos(dir){
+  let my=isProne?0.55:(isCrouching?1.0:1.5);
+  my+=jumpY;
+  let fx=p.x+Math.sin(dir)*1.6;
+  let fz=p.z+Math.cos(dir)*1.6;
+  return {x:fx,y:my,z:fz};
+}
+function shootGun3D(){
+  if(!gunMode||!currentGun)return;
+  if(isReloading)return;
+  if(ammo<=0){updateAmmoHud();return;}
+  let g=GUNS.find(x=>x.id===currentGun);let now=Date.now();if(now-lastShot<1000/g.speed)return;lastShot=now;
+  ammo--;updateAmmoHud();
+  let dir=camYaw;let tgt=getAimAssistTarget();if(tgt){dir=tgt.ang;}
+  p.dir=dir;
+  if(gun3){gun3.rotation.y=Math.PI/2-0.45;}
+// --- MUZZLE FIRE ONLY ---
+let mz0 = getMuzzlePos(dir);
+let flash = new THREE.Mesh(new THREE.SphereGeometry(0.35, 8, 8), new THREE.MeshBasicMaterial({ color: 0xFFFF00, transparent: true, opacity: 1 }));
+flash.position.set(mz0.x, mz0.y, mz0.z);
+scene3.add(flash);
+let flashLight = new THREE.PointLight(0xFFAA00, 2, 6);
+flashLight.position.set(mz0.x, mz0.y, mz0.z);
+scene3.add(flashLight);
+setTimeout(() => { try { scene3.remove(flash); } catch (e) {} try { scene3.remove(flashLight); } catch (e) {} }, 70);
+// --- MUZZLE FIRE KHATAM ---
+  let pellets=g.id==='m1887'?3:1;
+  for(let i=0;i<pellets;i++){let sp=g.id==='m1887'?(i-1)*0.12:0;let d2=dir+sp;let mz=getMuzzlePos(d2);let bm=new THREE.Mesh(new THREE.SphereGeometry(0.15,8,8),new THREE.MeshBasicMaterial({color:0xFFFF00}));bm.position.set(mz.x,mz.y,mz.z);scene3.add(bm);bullets3D.push({mesh:bm,vx:Math.sin(d2)*0.9,vz:Math.cos(d2)*0.9,life:60,dmg:g.dmg,range:g.range,traveled:0,dir:d2});}
+  p.attacking=true;p.swingT=0;}
+function tryKatana3D(){if(p.attacking)return;p.attacking=true;p.swingT=0;setTimeout(()=>{if(gameOver)return;let near=null,nd=3.5;enemies3.forEach(e=>{let d=Math.hypot(e.x-p.x,e.z-p.z);if(d<nd){let ang=Math.atan2(e.x-p.x,e.z-p.z);let diff=Math.abs(normAng(ang-camYaw));if(diff<1.2){nd=d;near=e;}}});if(near){let cfg=SWORD_CONFIG[currentSkin]||SWORD_CONFIG.katana;near.hp-=cfg.dmg;showBlood(near);if(cfg.effect==='freeze')near.frozen=50;if(cfg.effect==='burn')near.burn=120;if(near.hp<=0){try{scene3.remove(near.mesh)}catch(e){}enemies3=enemies3.filter(x=>x!==near);totalKilled++;updateLeft();if(totalKilled>=TOTAL_ENEMIES)winGame();else if(totalSpawned<TOTAL_ENEMIES){enemies3.push(makeEnemy3D(totalSpawned));totalSpawned++;}}showDmg3D(near,cfg.dmg);}},100);}
+function showBlood(e) {
+  if (!e || !scene3) return;
+  for (let i = 0; i < 6; i++) {
+    let b = new THREE.Mesh(new THREE.SphereGeometry(0.12, 6, 6), new THREE.MeshBasicMaterial({ color: 0xFF0000 }));
+    b.position.set(e.x + (Math.random() - 0.5) * 0.8, 1.5 + Math.random() * 0.8, e.z + (Math.random() - 0.5) * 0.8);
+    scene3.add(b);
+    setTimeout(() => { try { scene3.remove(b); } catch (err) {} }, 500);
+  }
+}
+function showDmg3D(e,dmg){let el=document.createElement('div');el.innerText='-'+dmg;el.style.cssText='position:absolute;left:50%;top:40%;color:#FFD700;font-weight:900;font-size:22px;z-index:20;text-shadow:0 0 4px #000';document.getElementById('game').appendChild(el);setTimeout(()=>el.remove(),600);}
+function loop3D(){
+  let firingNow=holding&&!gameOver;
+  if(firingNow&&!freeLookOn){
+    let targetDir=camYaw;
+    let tgt0=getAimAssistTarget();
+    if(tgt0)targetDir=tgt0.ang;
+    let diffF=normAng(targetDir-p.dir);
+    p.dir+=diffF*0.35;
+    if(Math.abs(diffF)<0.05)p.dir=targetDir;
+  }
+  if(!gameOver&&gunMode&&currentGun&&!freeLookOn){let tgt=getAimAssistTarget();if(tgt){aimLocked=true;aimLockDiff=tgt.diff;camTargetYaw+=tgt.diff*0.22;document.getElementById('crosshair').classList.add('locked');}else{aimLocked=false;aimLockDiff=0;document.getElementById('crosshair').classList.remove('locked');}if(gun3){let tr2=aimLocked?aimLockDiff*0.4:0;gun3.rotation.y+=(tr2-gun3.rotation.y)*0.2;}}else{aimLocked=false;if(gun3&&!freeLookOn)gun3.rotation.y*=0.85;let ch=document.getElementById('crosshair');if(ch)ch.classList.remove('locked');}
+  camYaw+=(camTargetYaw-camYaw)*0.45;camPitch+=(camTargetPitch-camPitch)*0.45;
+  let combinedX=joy.x,combinedY=joy.y,isRunning=false;
+  if(Math.abs(joyRun.x)>0.08||Math.abs(joyRun.y)>0.08){combinedX=joyRun.x;combinedY=joyRun.y;isRunning=true;}
+  joySmoothX+=(combinedX-joySmoothX)*0.55;joySmoothY+=(combinedY-joySmoothY)*0.55;
+  if(spawnProtect>0)spawnProtect--;
+  if(!gameOver){
+    if(isJumping){jumpY+=jumpVel;jumpVel-=0.02;if(jumpY<=0){jumpY=0;isJumping=false;jumpVel=0;}}
+    let speedMul=isProne?0.4:(isCrouching?0.6:1);
+    if(isRunning)speedMul*=1.8;
+    if(Math.abs(joySmoothX)>.08||Math.abs(joySmoothY)>.08){
+      let moveYaw=freeLookOn?freeLookYaw:camYaw;
+      let s=Math.sin(moveYaw),c=Math.cos(moveYaw);let wx=joySmoothX*c-joySmoothY*s;let wz=-joySmoothX*s-joySmoothY*c;let len=Math.sqrt(wx*wx+wz*wz);if(len>0.0001){wx/=len;wz/=len;}
+      if(!freeLookOn&&!firingNow)p.dir=Math.atan2(wx,wz);
+      p.x+=wx*PLAYER_SPEED*speedMul;p.z+=wz*PLAYER_SPEED*speedMul;p.walk+=(isRunning?0.55:0.3);p.moving=true;
+    }else{p.moving=false;if(!freeLookOn&&!firingNow){let diff=normAng(camYaw-p.dir);p.dir+=diff*0.15;}}
+    p.x=Math.max(-55,Math.min(55,p.x));p.z=Math.max(-55,Math.min(55,p.z));
+    if(player3){
+      player3.position.set(p.x,jumpY,p.z);
+      player3.rotation.y=freeLookOn?freeLookYaw:p.dir;
+      if(p.moving){legL3.rotation.x=Math.sin(p.walk)*0.45;legR3.rotation.x=-Math.sin(p.walk)*0.45;}
+      else{legL3.rotation.x*=0.8;legR3.rotation.x*=0.8;}
+      if(p.attacking&&sword3){sword3.rotation.x=2.09+Math.sin(p.swingT*0.5)*0.5;}
+    }
+    if(holding){if(gunMode&&currentGun)shootGun3D();else tryKatana3D();}
+    if(p.attacking){p.swingT++;if(p.swingT>20){p.attacking=false;if(sword3){sword3.rotation.x=2.09;}}}
+    enemies3.forEach(e=>{if(e.burn>0){e.burn--;if(Math.random()<0.1)e.hp-=2;}if(e.frozen>0){e.frozen--;}else{let d=Math.hypot(p.x-e.x,p.z-e.z);if(d>2.5){let dx=(p.x-e.x)/d,dz=(p.z-e.z)/d;e.x+=dx*ENEMY_SPEED;e.z+=dz*ENEMY_SPEED;e.mesh.position.set(e.x,0,e.z);e.mesh.rotation.y=Math.atan2(dx,dz);}else{e.cool--;if(e.cool<=0){if(spawnProtect<=0){p.hp-=18;document.getElementById('hpText').innerText=p.hp;document.getElementById('hpFill').style.width=(p.hp/200*100)+'%';if(p.hp<=0)deadGame();}e.cool=80;}}}e.mesh.position.set(e.x,0,e.z);});
+  }
+  bullets3D.forEach(b=>{b.mesh.position.x+=b.vx;b.mesh.position.z+=b.vz;b.traveled+=0.9;b.life--;enemies3.slice().forEach(e=>{if(Math.hypot(b.mesh.position.x-e.x,b.mesh.position.z-e.z)<1.2){e.hp-=b.dmg;b.life=0;showDmg3D(e,b.dmg);showBlood(e);if(e.hp<=0){try{scene3.remove(e.mesh)}catch(err){}enemies3=enemies3.filter(x=>x!==e);totalKilled++;updateLeft();if(totalKilled>=TOTAL_ENEMIES)winGame();else if(totalSpawned<TOTAL_ENEMIES){enemies3.push(makeEnemy3D(totalSpawned));totalSpawned++;}}}});});
+  bullets3D=bullets3D.filter(b=>{if(b.life<=0||b.traveled>b.range){try{scene3.remove(b.mesh)}catch(e){}return false;}return true;});
+  if(renderer3&&camera3){
+    let backDist=3.1;
+    let sideOffset=-0.85;
+    let pivotY=isProne?0.9:(isCrouching?1.4:1.9);
+    pivotY+=jumpY;
+    let camUseYaw=freeLookOn?freeLookYaw:camYaw;
+    let cosP=Math.cos(camPitch), sinP=Math.sin(camPitch);
+    let orbitBack=backDist*cosP;
+    let orbitHeight=pivotY - sinP*backDist*0.85;
+    if(orbitHeight<0.6)orbitHeight=0.6;
+    if(orbitHeight>4.5)orbitHeight=4.5;
+    let camX=p.x - Math.sin(camUseYaw)*orbitBack + Math.cos(camUseYaw)*sideOffset*cosP;
+    let camZ=p.z - Math.cos(camUseYaw)*orbitBack - Math.sin(camUseYaw)*sideOffset*cosP;
+    camera3.position.set(camX,orbitHeight,camZ);
+    let lookX=p.x + Math.sin(camUseYaw)*12 + Math.cos(camUseYaw)*sideOffset;
+    let lookZ=p.z + Math.cos(camUseYaw)*12 - Math.sin(camUseYaw)*sideOffset;
+    let lookY=pivotY + sinP*10;
+    camera3.lookAt(lookX,lookY,lookZ);
+    renderer3.render(scene3,camera3);
+  }
+  requestAnimationFrame(loop3D);
+}
+renderBundles();renderGuns();updateCurrency();updateGunHud();updateAmmoHud();renderWeaponsKatanaList();renderWeaponsGunsList('ar');
+</script>
+</body>
+</html>
